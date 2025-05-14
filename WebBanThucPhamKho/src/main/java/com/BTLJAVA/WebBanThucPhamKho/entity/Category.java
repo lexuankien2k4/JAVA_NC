@@ -15,11 +15,11 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "roles")
-public class Role extends AbstractEntity<Integer> {
+@Table(name = "categories")
+public class Category extends AbstractEntity<Integer> {
     @Column(name = "name")
     private String name;
 
-    @OneToMany(mappedBy = "role")
-    private Set<UserHasRole> users = new HashSet<>();
+    @OneToMany(mappedBy = "category")
+    private Set<Product> products = new HashSet<>();
 }

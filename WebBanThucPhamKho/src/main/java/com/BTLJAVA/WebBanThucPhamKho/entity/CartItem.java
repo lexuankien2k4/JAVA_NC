@@ -14,6 +14,7 @@ public class CartItem extends AbstractEntity<Integer> {
     @JoinColumn(name = "user_id")
     @ManyToOne
     private User user;
+
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
