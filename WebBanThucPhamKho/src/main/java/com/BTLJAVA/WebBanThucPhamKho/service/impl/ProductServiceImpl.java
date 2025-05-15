@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
@@ -42,7 +44,9 @@ public class ProductServiceImpl implements ProductService {
                 .imageUrl(productRequest.getImageUrl())
                 .price(productRequest.getPrice())
                 .stockQuantity(productRequest.getStockQuantity())
-                .soldQuantity(0) // mới tạo nên chưa bán
+                .soldQuantity(0)
+                .expiryDate(productRequest.getExpiryDate())
+                .manufactureDate(productRequest.getManufactureDate())// mới tạo nên chưa bán
                 .build();
 
         product = productRepository.save(product);
@@ -64,6 +68,7 @@ public class ProductServiceImpl implements ProductService {
         product.setPrice(productRequest.getPrice());
         product.setStockQuantity(productRequest.getStockQuantity());
 
+
         product = productRepository.save(product);
 
         return productMapper.toDTO(product);
@@ -74,5 +79,11 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));
         productRepository.delete(product);
+    }
+
+    @Override
+    public ProductResponse getProductById(Integer id) {
+        Optional<Product> productOptional = productRepository.findById(id);
+        return productOptional.map(productMapper::toDTO).orElse(null);
     }
 }

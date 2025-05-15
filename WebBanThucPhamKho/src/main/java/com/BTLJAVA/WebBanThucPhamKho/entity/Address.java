@@ -2,7 +2,6 @@ package com.BTLJAVA.WebBanThucPhamKho.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 @Setter
 @Getter
 @Builder
@@ -29,4 +28,5 @@ public class Address extends AbstractEntity<Integer> {
 
     @OneToOne(mappedBy = "address", fetch = FetchType.EAGER)
     private Order order;
+
 }

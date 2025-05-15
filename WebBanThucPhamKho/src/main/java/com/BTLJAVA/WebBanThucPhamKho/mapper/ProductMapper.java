@@ -10,11 +10,13 @@ public class ProductMapper {
         return ProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
-                .category(product.getCategory().getName())
+                .categoryName(product.getCategory().getName())
                 .imageUrl(product.getImageUrl())
                 .price(product.getPrice())
                 .stockQuantity(product.getStockQuantity())
                 .soldQuantity(product.getSoldQuantity())
+                .expiryDate(product.getExpiryDate())
+                .manufactureDate(product.getManufactureDate())
                 .build();
     }
 }

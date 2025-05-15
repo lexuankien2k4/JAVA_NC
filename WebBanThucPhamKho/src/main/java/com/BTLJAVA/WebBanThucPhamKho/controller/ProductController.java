@@ -33,7 +33,7 @@ public class ProductController {
                 .build();
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+ @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseData<ProductResponse> createProduct(@RequestBody ProductRequest productRequest) {
         ProductResponse product = productService.createProduct(productRequest);
@@ -45,7 +45,7 @@ public class ProductController {
                 .build();
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+ @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}")
     public ResponseData<ProductResponse> updateProduct(
             @PathVariable("id") Integer id,
@@ -67,6 +67,23 @@ public class ProductController {
                 .status(HttpStatus.OK.value())
                 .message("Deleted successfully")
                 .data("Product with ID " + id + " has been deleted")
+                .build();
+    }
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/{id}")
+    public ResponseData<ProductResponse> getProductById(@PathVariable("id") Integer id) {
+        // Bạn sẽ cần tạo phương thức getProductById trong ProductService
+        ProductResponse product = productService.getProductById(id); // Ví dụ
+        if (product == null) {
+            return ResponseData.<ProductResponse>builder()
+                    .status(HttpStatus.NOT_FOUND.value())
+                    .message("Product not found with ID " + id)
+                    .build();
+        }
+        return ResponseData.<ProductResponse>builder()
+                .status(HttpStatus.OK.value())
+                .message("Success")
+                .data(product)
                 .build();
     }
 

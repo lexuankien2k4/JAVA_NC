@@ -1,0 +1,625 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+:root{
+    --color-primary: #6C9BCF;
+    --color-danger: #FF0060;
+    --color-success: #1B9C85;
+    --color-warning: #F7D060;
+    --color-white: #fff;
+    --color-info-dark: #7d8da1;
+    --color-dark: #363949;
+    --color-light: rgba(132, 139, 200, 0.18);
+    --color-dark-variant: #677483;
+    --color-background: #f6f6f9;
+
+    --card-border-radius: 2rem;
+    --border-radius-1: 0.4rem;
+    --border-radius-2: 1.2rem;
+
+    --card-padding: 1.8rem;
+    --padding-1: 1.2rem;
+
+    --box-shadow: 0 2rem 3rem var(--color-light);
+}
+.dark-mode-variables{
+    --color-background: #181a1e;
+    --color-white: #202528;
+    --color-dark: #edeffd;
+    --color-dark-variant: #a3bdcc;
+    --color-light: rgba(0, 0, 0, 0.4);
+    --box-shadow: 0 2rem 3rem var(--color-light);
+}
+*{
+    margin: 0;
+    padding: 0;
+    outline: 0;
+    appearance: 0;
+    border: 0;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+html{
+    font-size: 14px;
+}
+body{
+    width: 100vw;
+    height: 100vh;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.88rem;
+    user-select: none;
+    overflow-x: hidden;
+    color: var(--color-dark);
+    background-color: var(--color-background);
+}
+a{
+    color: var(--color-dark);
+}
+img{
+    display: block;
+    width: 100%;
+    object-fit: cover;
+}
+h1{
+    font-weight: 800;
+    font-size: 1.8rem;
+}
+h2{
+    font-weight: 800;
+    font-size: 1.6rem;
+}
+h3{
+    font-weight: 500;
+    font-size: 0.87rem;
+}
+
+small{
+    font-size: 0.76rem;
+}
+p{
+    color: var(--color-dark-variant);
+}
+
+b{
+    color: var(--color-dark);
+}
+.text-muted{
+    color: var(--color-info-dark);
+}
+.primary{
+    color: var(--color-primary);
+}
+
+.danger{
+    color: var(--color-danger);
+}
+
+.success{
+    color: var(--color-success);
+}
+
+.warning{
+    color: var(--color-warning);
+}
+.container{
+    display: grid;
+    width: 96%;
+    margin: 0 auto;
+    gap: 1.8rem;
+    grid-template-columns: 12rem auto ;
+}
+aside{
+    height: 100vh;
+}
+aside .toggle{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1.4rem;
+}
+aside .toggle .logo{
+    display: flex;
+    gap: 0.5rem;
+}
+aside .toggle .logo img{
+    width: 2rem;
+    height: 2rem;
+}
+aside .toggle .close{
+    padding-right: 1rem;
+    display: none;
+}
+aside .sidebar{
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-white);
+    box-shadow: var(--box-shadow);
+    border-radius: 15px;
+    height: 88vh;
+    position: relative;
+    top: 1.5rem;
+    transition: all 0.3s ease;
+}
+aside .sidebar:hover{
+    box-shadow: none;
+}
+aside .sidebar a{
+    display: flex;
+    align-items: center;
+    color: var(--color-info-dark);
+    height: 3.7rem;
+    gap: 1rem;
+    position: relative;
+    margin-left: 2rem;
+    transition: all 0.3s ease;
+}
+aside .sidebar a span{
+    font-size: 1.6rem;
+    transition: all 0.3s ease;
+}
+aside .sidebar a:last-child{
+    position: absolute;
+    bottom: 2rem;
+    width: 100%;
+}
+aside .sidebar a.active{
+    width: 100%;
+    color: var(--color-primary);
+    background-color: var(--color-light);
+    margin-left: 0;
+    border-radius: 15px;
+}
+
+aside .sidebar a.active::before{
+    content: '';
+    width: 6px;
+    height: 18px;
+    background-color: var(--color-primary);
+}
+aside .sidebar a.active span{
+    color: var(--color-primary);
+    margin-left: calc(1rem - 3px);
+}
+aside .sidebar a:hover{
+    color: var(--color-primary);
+}
+aside .sidebar a:hover span{
+    margin-left: 0.6rem;
+}
+aside .sidebar .message-count{
+    background-color: var(--color-danger);
+    padding: 2px 6px;
+    color: var(--color-white);
+    font-size: 11px;
+    border-radius: var(--border-radius-1);
+}
+
+main{
+    margin-top: 1.4rem;
+}
+
+main .dashboard h3{
+
+    font-size: 1rem;
+}
+main .dashboard h3{
+
+    font-size: 1rem;
+}
+.nav{
+    display: flex;
+    justify-content: end;
+    gap: 2rem;
+}
+.nav button{
+    display: none;
+}
+.dark-mode{
+    background-color: var(--color-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 1.6rem;
+    width: 4.2rem;
+    cursor: pointer;
+    border-radius: var(--border-radius-1);
+}
+.dark-mode span{
+    font-size: 1.2rem;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.dark-mode span.active{
+    background-color: var(--color-primary);
+    color: white;
+    border-radius: var(--border-radius-1);
+}
+.nav .profile{
+    display: flex;
+    gap: 2rem;
+    text-align: right;
+}
+.nav .profile .profile-photo{
+    width: 2.8rem;
+    height: 2.8rem;
+    border-radius: 50%;
+    overflow: hidden;
+}
+.main-nemu {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Đưa h1 sang trái và nav sang phải */
+
+    gap: 1rem; /* Khoảng cách giữa h1 và nav */
+}
+.main-nemu h1 {
+    font-size: 1.8rem; /* Có thể điều chỉnh kích thước chữ */
+    font-weight: 800;
+    margin: 0; /* Loại bỏ margin mặc định */
+}
+.main-nemu .nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* Khoảng cách giữa các phần tử trong nav */
+}
+/*  */
+@media screen and (max-width: 1200px) {
+    .container{
+        width: 95%;
+        grid-template-columns: 7rem auto 23rem;
+    }
+
+    aside .logo h2{
+        display: none;
+    }
+
+    aside .sidebar h3{
+        display: none;
+    }
+
+    aside .sidebar a{
+        width: 5.6rem;
+    }
+
+    aside .sidebar a:last-child{
+        position: relative;
+        margin-top: 1.8rem;
+    }
+
+    main .dashboard{
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+
+
+    main .new-student {
+        width: 94%;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        margin: 2rem 0 0 0.8rem;
+    }
+
+    main .new-student table{
+        width: 83vw;
+    }
+
+    main table thead tr th:last-child,
+    main table thead tr th:first-child{
+        display: none;
+    }
+
+
+
+}
+@media screen and (max-width: 768px) {
+    .container{
+        width: 100%;
+        grid-template-columns: 1fr;
+        padding: 0 var(--padding-1);
+    }
+
+    aside{
+        position: fixed;
+        background-color: var(--color-white);
+        width: 15rem;
+        z-index: 3;
+        box-shadow: 1rem 3rem 4rem var(--color-light);
+        height: 100vh;
+        left: -100%;
+        display: none;
+        animation: showMenu 0.4s ease forwards;
+    }
+
+    @keyframes showMenu {
+       to{
+        left: 0;
+       }
+    }
+
+    aside .logo{
+        margin-left: 1rem;
+    }
+
+    aside .logo h2{
+        display: inline;
+    }
+
+    aside .sidebar h3{
+        display: inline;
+    }
+
+    aside .sidebar a{
+        width: 100%;
+        height: 3.4rem;
+    }
+
+    aside .sidebar a:last-child{
+        position: absolute;
+        bottom: 5rem;
+    }
+
+    aside .toggle .close{
+        display: inline-block;
+        cursor: pointer;
+    }
+
+main{
+        margin-top: 8rem;
+        padding: 0 1rem;
+    }
+
+
+main .new-student{
+        position: relative;
+        margin: 3rem 0 0 0;
+        width: 100%;
+    }
+
+    main .new-student table{
+        width: 100%;
+        margin: 0;
+    }
+
+
+
+     .nav{
+        position: fixed;
+        top: 0;
+        left: 0;
+        align-items: center;
+        background-color: var(--color-white);
+        padding: 0 var(--padding-1);
+        height: 4.6rem;
+        width: 100%;
+        z-index: 2;
+        box-shadow: 0 1rem 1rem var(--color-light);
+        margin: 0;
+    }
+
+     .nav .dark-mode{
+        width: 4.4rem;
+        position: absolute;
+        left: 66%;
+    }
+
+     .profile .info{
+        display: none;
+    }
+
+     .nav button{
+        display: inline-block;
+        background-color: transparent;
+        cursor: pointer;
+        color: var(--color-dark);
+        position: absolute;
+        left: 1rem;
+    }
+
+     .nav button span{
+        font-size: 2rem;
+    }
+
+}
+/* Controller-top-rigth */
+/* controller-top */
+.controller-top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 14px 0 0;
+    align-items: center;
+}
+.controller-top button#add{
+    background-color: #28a745;
+}
+.controller-top button {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.controller-top button i {
+    margin-right: 5px;
+}
+
+.controller-top .top-right {
+    margin-left: auto; /* Đẩy toàn bộ nhóm nút sang bên phải */
+    display: flex;
+    gap: 10px; /* Khoảng cách giữa các nút */
+    align-items: center;
+}
+
+.controller-top .top-right input {
+    flex-grow: 1; /* Tự động mở rộng theo không gian còn lại */
+    max-width: 300px; /* Đảm bảo không quá dài */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.controller-top .top-right button {
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+
+
+
+
+/* controller-top */
+.controller-top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 14px 0 0;
+    align-items: center;
+}
+.controller-top button {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.controller-top button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.controller-top .top-right {
+    margin-left: auto; /* Đẩy toàn bộ nhóm nút sang bên phải */
+    display: flex;
+    gap: 10px; /* Khoảng cách giữa các nút */
+}
+.controller-top button i {
+    margin-right: 5px;
+}
+
+.controller-top .export,
+.controller-top .import {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+
+}
+
+.controller-top .import {
+    background-color: #007bff;
+}
+
+/* controller-bottom */
+.controller-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 14px 0 0;
+    width: 100%; /* Trải dài toàn bộ chiều ngang */
+}
+
+.controller-bottom input,
+.controller-bottom select,
+.controller-bottom button {
+    flex: 1; /* Các thành phần chia đều chiều ngang */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    min-width: 100px; /* Đảm bảo nút không quá nhỏ */
+}
+
+.controller-bottom input[type="date"] {
+    padding-right: 30px;
+}
+
+.controller-bottom button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.controller-bottom button.reset {
+    background-color: #dc3545;
+}
+
+.controller-bottom button i {
+    margin-right: 5px;
+}
+/* Table */
+main .table{
+    margin-bottom: 1.3rem;
+    margin-top: 9px;
+}
+main .table h2{
+    margin-bottom: 0.7rem;
+}
+main table{
+    background-color: var(--color-white);
+    width: 100%;
+    padding: var(--card-padding);
+    text-align: center;
+    box-shadow: var(--box-shadow);
+    border-radius: var(--card-border-radius);
+    transition: all 0.3s ease;
+}
+main .table:hover{
+    box-shadow: none;
+}
+main table tbody td{
+    height: 2.8rem;
+    border-bottom: 1px solid var(--color-light);
+    color: var(--color-dark-variant);
+}
+main table tbody tr:last-child td{
+    border: none;
+}
+main .table a{
+    text-align: center;
+    display: block;
+    margin: 1rem auto;
+    color: var(--color-primary);
+}
+/* Các nút hành động */
+/* Định dạng chung cho các nút icon */
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    margin: 0 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #555; /* Màu mặc định */
+}
+
+.icon-btn:hover {
+    color: #007bff; /* Màu khi hover */
+}
+
+.view-btn {
+    color: #28a745; /* Màu icon "Xem chi tiết" */
+}
+
+.edit-btn {
+    color: #ffc107; /* Màu icon "Cập nhật" */
+}
+
+.delete-btn {
+    color: #dc3545; /* Màu icon "Xóa" */
+}
+

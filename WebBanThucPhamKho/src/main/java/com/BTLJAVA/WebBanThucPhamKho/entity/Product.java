@@ -14,7 +14,11 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(name = "products")
-public class Product extends AbstractEntity<Integer>{
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
     @Column(name = "name")
     private String name;
     @JoinColumn(name = "category_id")
@@ -43,4 +47,6 @@ public class Product extends AbstractEntity<Integer>{
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private Set<OrderDetail> orderDetails = new HashSet<>();
+
+
 }

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập / Đăng ký (JWT Example)</title>
+    <link rel="stylesheet" href="/static/css/style.css"> </head>
+<body>
+<div class="container">
+    <div id="loginFormSection">
+        <h2>Đăng nhập</h2>
+        <form id="loginForm">
+            <label for="loginUsername"></label><input type="text" id="loginUsername" placeholder="Tên người dùng" required>
+            <label for="loginPassword"></label><input type="password" id="loginPassword" placeholder="Mật khẩu" required>
+            <button type="submit">Đăng nhập</button>
+        </form>
+        <p class="switch-form" onclick="showRegisterForm()">Chưa có tài khoản? Đăng ký ngay!</p>
+        <div class="message" id="loginMessage"></div>
+    </div>
+
+    <div id="registerFormSection" style="display: none;">
+        <h2>Đăng ký</h2>
+        <form id="registerForm">
+            <label for="registerUsername"></label><input type="text" id="registerUsername" placeholder="Tên người dùng" required>
+            <label for="registerPassword"></label><input type="password" id="registerPassword" placeholder="Mật khẩu" required>
+            <button type="submit">Đăng ký</button>
+        </form>
+        <p class="switch-form" onclick="showLoginForm()">Đã có tài khoản? Đăng nhập!</p>
+        <div class="message" id="registerMessage"></div>
+    </div>
+
+    <div id="userInfoSection" style="display: none;">
+        <h2>Thông tin người dùng</h2>
+        <p>Xin chào, <strong id="authenticatedUsername"></strong>!</p>
+        <button onclick="accessProtectedData()">Truy cập Dữ liệu Bảo mật</button>
+        <button onclick="logout()">Đăng xuất</button>
+        <div class="message" id="protectedDataMessage"></div>
+    </div>
+
+</div>
+
+<script src="/static/js/script.js"></script>
+</body>
+</html>
