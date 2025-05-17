@@ -9,6 +9,7 @@ import lombok.Setter;
 @Builder
 public class UserResponse {
     private Integer id;
+    private String userName;
     private String firstName;
     private String lastName;
     private String email;

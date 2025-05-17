@@ -19,12 +19,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/order")
 @RequiredArgsConstructor
-@EnableMethodSecurity
+//@EnableMethodSecurity
 public class OrderController {
 
     private final OrderService orderService;
 
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/list")
     public ResponseData<List<OrderResponse>> getOrders(
             @RequestParam(value = "pageNumber", defaultValue = "0") Integer pageNumber,
@@ -39,7 +39,7 @@ public class OrderController {
                 .build();
     }
 
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     @GetMapping
     public ResponseData<List<OrderResponse>> getOrdersByUserId(
             Authentication authentication,
@@ -57,7 +57,7 @@ public class OrderController {
                 .build();
     }
 
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     @PostMapping
     public ResponseData<OrderResponse> createOrder(
             Authentication authentication,
@@ -74,7 +74,7 @@ public class OrderController {
                 .build();
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}")
     public ResponseData<OrderResponse> updateStatusOrder(
             @PathVariable("id") Integer id,

@@ -11,6 +11,11 @@ public class UiController {
         return "Quanlysanpham";
 
     }
+    @GetMapping("/login")
+    public String login() {
+        return "index";
+
+    }
 
 
 }

@@ -18,11 +18,11 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/user")
-@EnableMethodSecurity
+//@EnableMethodSecurity
 public class UserController {
     private final UserService userService;
 
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/list")
     public ResponseData<List<UserResponse>> getUsers(
             @RequestParam(value = "page", defaultValue = "0") Integer pageNumber) {
@@ -47,7 +47,7 @@ public class UserController {
                 .build();
     }
 
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     @PatchMapping
     public ResponseData<UserResponse> updateUser(Authentication authentication, @RequestBody UserUpdateRequest userUpdate) {
 
@@ -61,7 +61,7 @@ public class UserController {
                 .data(userResponse)
                 .build();
     }
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseData<String> deleteUser(@PathVariable Integer id) {
         userService.deleteUser(id);

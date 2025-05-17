@@ -13,6 +13,7 @@ import com.BTLJAVA.WebBanThucPhamKho.util.TypeUser;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,6 +26,7 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -97,6 +99,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Not found"));
+        log.info("Attempting to load user by username: {}", username);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> {
+                    log.warn("USER_NOT_FOUND_WITH_USERNAME: {}", username);
+                    return new UsernameNotFoundException("User not found with username: " + username);
+                });
+
+        // Giả sử User entity của bạn đã implement UserDetails
+        log.info("User found: {}", user.getUsername());
+        log.info("Encoded Password from DB for user {}: {}", user.getUsername(), user.getPassword());
+        log.info("Authorities for user {}: {}", user.getUsername(), user.getAuthorities());
+        log.info("Is account non-expired for user {}: {}", user.getUsername(), user.isAccountNonExpired());
+        log.info("Is account non-locked for user {}: {}", user.getUsername(), user.isAccountNonLocked());
+        log.info("Is credentials non-expired for user {}: {}", user.getUsername(), user.isCredentialsNonExpired());
+        log.info("Is account enabled for user {}: {}", user.getUsername(), user.isEnabled());
+
+        return user;
     }
 }

@@ -2,11 +2,14 @@ package com.BTLJAVA.WebBanThucPhamKho.service.impl;
 
 
 import com.BTLJAVA.WebBanThucPhamKho.dto.request.AuthenticationRequest;
+import com.BTLJAVA.WebBanThucPhamKho.dto.request.RegistrationRequest;
+import com.BTLJAVA.WebBanThucPhamKho.dto.request.UserCreateRequest;
 import com.BTLJAVA.WebBanThucPhamKho.dto.response.AccessTokenResponse;
 import com.BTLJAVA.WebBanThucPhamKho.dto.response.AuthenticationResponse;
 import com.BTLJAVA.WebBanThucPhamKho.dto.response.UserResponse;
 import com.BTLJAVA.WebBanThucPhamKho.entity.User;
 import com.BTLJAVA.WebBanThucPhamKho.mapper.UserMapper;
+import com.BTLJAVA.WebBanThucPhamKho.repository.RoleRepository;
 import com.BTLJAVA.WebBanThucPhamKho.service.AuthenticationService;
 import com.BTLJAVA.WebBanThucPhamKho.service.JwtService;
 import com.BTLJAVA.WebBanThucPhamKho.service.UserService;
@@ -16,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -27,6 +31,8 @@ public class AuthenticationImpl implements AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder; // Added for registration
+    private final RoleRepository roleRepository;     // Added for assigning default role
 
     @Override
     public AuthenticationResponse authenticate(AuthenticationRequest authenticationRequest) {
@@ -60,6 +66,18 @@ public class AuthenticationImpl implements AuthenticationService {
         return AccessTokenResponse.builder()
                 .accessToken(accessToken)
                 .build();
+    }
+    @Override
+    public UserResponse register(UserCreateRequest userCreateRequest) {
+        log.info("Registration attempt for username: {}", userCreateRequest.getUsername());
+
+        UserResponse registeredUserResponse = userService.createUser(userCreateRequest);
+
+        log.info("User {} registered successfully with ID {}.",
+                registeredUserResponse.getUserName(),
+                registeredUserResponse.getId());
+
+        return registeredUserResponse;
     }
 
 

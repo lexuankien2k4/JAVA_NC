@@ -19,12 +19,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/cart")
 @RequiredArgsConstructor
-@EnableMethodSecurity
+//@EnableMethodSecurity
 public class CartItemController {
 
     private final CartItemService cartItemService;
 
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     @GetMapping
     public ResponseData<List<CartItemResponse>> getCartItems(Authentication authentication) {
 
@@ -39,7 +39,7 @@ public class CartItemController {
                 .build();
     }
 
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     @PostMapping
     public ResponseData<CartItemResponse> createCartItem(
             Authentication authentication,
@@ -56,7 +56,7 @@ public class CartItemController {
                 .build();
     }
 
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     @PatchMapping("{id}")
     public ResponseData<CartItemResponse> updateCartItem(
             Authentication authentication,
@@ -74,7 +74,7 @@ public class CartItemController {
                 .build();
     }
 
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/{id}")
     public ResponseData<String> deleteCartItem(
             Authentication authentication,

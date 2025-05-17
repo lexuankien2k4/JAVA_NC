@@ -13,12 +13,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/address")
 @RequiredArgsConstructor
-@EnableMethodSecurity
+//@EnableMethodSecurity
 public class AddressController {
 
     private final AddressService addressService;
 
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     @PostMapping
     public ResponseData<Integer> createAddress(@RequestBody AddressRequest addressRequest) {
 
@@ -31,7 +31,7 @@ public class AddressController {
                 .build();
     }
 
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     @PatchMapping("/{id}")
     public ResponseData<Integer> updateAddress(
             @PathVariable("id") Integer id,

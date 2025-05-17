@@ -1,46 +1,52 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
-:root{
-    --color-primary: #6C9BCF;
-    --color-danger: #FF0060;
-    --color-success: #1B9C85;
-    --color-warning: #F7D060;
+
+:root {
+    --color-primary: #6C9BCF; /* Xanh dương HAUI */
+    --color-danger: #FF0060; /* Đỏ cho lỗi/xóa */
+    --color-success: #1B9C85; /* Xanh lá cho thành công */
+    --color-warning: #F7D060; /* Vàng cho cảnh báo */
     --color-white: #fff;
-    --color-info-dark: #7d8da1;
-    --color-dark: #363949;
-    --color-light: rgba(132, 139, 200, 0.18);
-    --color-dark-variant: #677483;
-    --color-background: #f6f6f9;
+    --color-info-dark: #7d8da1; /* Màu text phụ, hơi xám */
+    --color-dark: #363949; /* Màu text chính */
+    --color-light: rgba(132, 139, 200, 0.18); /* Màu nền sáng, hơi trong suốt */
+    --color-dark-variant: #677483; /* Biến thể màu tối hơn cho text phụ */
+    --color-background: #f6f6f9; /* Màu nền chính của trang */
 
     --card-border-radius: 2rem;
-    --border-radius-1: 0.4rem;
-    --border-radius-2: 1.2rem;
+    --border-radius-1: 0.4rem; /* Bo góc nhỏ */
+    --border-radius-2: 1.2rem; /* Bo góc vừa */
 
     --card-padding: 1.8rem;
     --padding-1: 1.2rem;
 
     --box-shadow: 0 2rem 3rem var(--color-light);
 }
-.dark-mode-variables{
+
+.dark-mode-variables {
     --color-background: #181a1e;
-    --color-white: #202528;
-    --color-dark: #edeffd;
-    --color-dark-variant: #a3bdcc;
-    --color-light: rgba(0, 0, 0, 0.4);
+    --color-white: #202528; /* Sẽ là màu nền của card trong dark mode */
+    --color-dark: #edeffd; /* Text chính trong dark mode */
+    --color-dark-variant: #a3bdcc; /* Text phụ trong dark mode */
+    --color-light: rgba(0, 0, 0, 0.4); /* Shadow trong dark mode */
     --box-shadow: 0 2rem 3rem var(--color-light);
+    --color-info-dark: #a3bdcc; /* Text phụ trong dark mode, giống dark-variant */
 }
-*{
+
+* {
     margin: 0;
     padding: 0;
     outline: 0;
-    appearance: 0;
+    appearance: none;
     border: 0;
     text-decoration: none;
     box-sizing: border-box;
 }
-html{
+
+html {
     font-size: 14px;
 }
-body{
+
+body {
     width: 100vw;
     height: 100vh;
     font-family: 'Poppins', sans-serif;
@@ -50,98 +56,123 @@ body{
     color: var(--color-dark);
     background-color: var(--color-background);
 }
-a{
+
+a {
     color: var(--color-dark);
 }
-img{
+
+img {
     display: block;
     width: 100%;
     object-fit: cover;
 }
-h1{
+
+h1 {
     font-weight: 800;
     font-size: 1.8rem;
 }
-h2{
-    font-weight: 800;
+
+h2 {
+    font-weight: 600; /* Giảm một chút cho đỡ đậm */
     font-size: 1.6rem;
 }
-h3{
+
+h3 {
     font-weight: 500;
     font-size: 0.87rem;
 }
 
-small{
+small {
     font-size: 0.76rem;
 }
-p{
+
+p {
     color: var(--color-dark-variant);
 }
 
-b{
+b {
     color: var(--color-dark);
 }
-.text-muted{
+
+.text-muted {
     color: var(--color-info-dark);
 }
-.primary{
+
+.primary {
     color: var(--color-primary);
 }
 
-.danger{
+.danger {
     color: var(--color-danger);
 }
 
-.success{
+.success {
     color: var(--color-success);
 }
 
-.warning{
+.warning {
     color: var(--color-warning);
 }
-.container{
+
+.container {
     display: grid;
     width: 96%;
     margin: 0 auto;
     gap: 1.8rem;
-    grid-template-columns: 12rem auto ;
+    grid-template-columns: 14rem auto; /* Tăng nhẹ chiều rộng sidebar */
 }
-aside{
+
+/* Sidebar */
+aside {
     height: 100vh;
 }
-aside .toggle{
+
+aside .toggle {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-top: 1.4rem;
 }
-aside .toggle .logo{
+
+aside .toggle .logo {
     display: flex;
-    gap: 0.5rem;
+    align-items: center; /* Căn giữa logo và text */
+    gap: 0.8rem; /* Tăng khoảng cách */
 }
-aside .toggle .logo img{
-    width: 2rem;
-    height: 2rem;
+
+aside .toggle .logo img {
+    width: 2.5rem; /* Tăng kích thước logo */
+    height: 2.5rem;
 }
-aside .toggle .close{
+aside .toggle .logo h2 {
+    font-weight: 600;
+    font-size: 1.1rem; /* Kích thước chữ cho tên Nhóm */
+    color: var(--color-dark);
+}
+
+aside .toggle .close {
     padding-right: 1rem;
     display: none;
+    cursor: pointer;
 }
-aside .sidebar{
+
+aside .sidebar {
     display: flex;
     flex-direction: column;
     background-color: var(--color-white);
     box-shadow: var(--box-shadow);
     border-radius: 15px;
-    height: 88vh;
+    height: calc(100vh - 6rem); /* Điều chỉnh chiều cao sidebar */
     position: relative;
     top: 1.5rem;
     transition: all 0.3s ease;
 }
-aside .sidebar:hover{
+
+aside .sidebar:hover {
     box-shadow: none;
 }
-aside .sidebar a{
+
+aside .sidebar a {
     display: flex;
     align-items: center;
     color: var(--color-info-dark);
@@ -151,78 +182,103 @@ aside .sidebar a{
     margin-left: 2rem;
     transition: all 0.3s ease;
 }
-aside .sidebar a span{
+
+aside .sidebar a span.material-icons-sharp { /* Target cụ thể icon */
     font-size: 1.6rem;
     transition: all 0.3s ease;
 }
-aside .sidebar a:last-child{
+
+aside .sidebar a:last-child { /* Logout button */
     position: absolute;
-    bottom: 2rem;
+    bottom: 1rem; /* Điều chỉnh vị trí nút logout */
     width: 100%;
 }
-aside .sidebar a.active{
+
+aside .sidebar a.active {
     width: 100%;
     color: var(--color-primary);
     background-color: var(--color-light);
     margin-left: 0;
-    border-radius: 15px;
+    border-top-left-radius: 15px; /* Bo góc cho khớp */
+    border-bottom-left-radius: 15px;
 }
 
-aside .sidebar a.active::before{
+aside .sidebar a.active::before {
     content: '';
     width: 6px;
-    height: 18px;
+    height: 100%; /* Kéo dài thanh chỉ thị */
     background-color: var(--color-primary);
 }
-aside .sidebar a.active span{
+
+aside .sidebar a.active span.material-icons-sharp {
     color: var(--color-primary);
-    margin-left: calc(1rem - 3px);
+    margin-left: calc(1rem - 3px); /* Giữ nguyên nếu ổn */
 }
-aside .sidebar a:hover{
+aside .sidebar a.active h3 {
+    color: var(--color-primary); /* Đảm bảo text cũng đổi màu */
+}
+
+aside .sidebar a:hover {
     color: var(--color-primary);
 }
-aside .sidebar a:hover span{
+aside .sidebar a:hover h3 {
+    color: var(--color-primary);
+}
+
+aside .sidebar a:hover span.material-icons-sharp {
     margin-left: 0.6rem;
 }
-aside .sidebar .message-count{
+
+aside .sidebar .message-count { /* Not used in current HTML, but good to have */
     background-color: var(--color-danger);
     padding: 2px 6px;
-    color: var(--color-white);
+    color: var(--color-white); /* Chắc chắn text màu trắng */
     font-size: 11px;
     border-radius: var(--border-radius-1);
 }
 
-main{
+/* Main Content */
+main {
     margin-top: 1.4rem;
+    padding-bottom: 2rem; /* Thêm padding để nội dung không bị sát đáy */
+}
+/* Loại bỏ h3 bị trùng lặp */
+main .dashboard h1 { /* Kiểu cho tiêu đề WELCOME */
+    font-weight: 800;
+    font-size: 1.8rem; /* Đã có ở global h1, nhưng có thể tùy chỉnh ở đây */
+    margin-bottom: 1rem;
 }
 
-main .dashboard h3{
-
-    font-size: 1rem;
-}
-main .dashboard h3{
-
-    font-size: 1rem;
-}
-.nav{
+.nav { /* Thanh điều hướng trên cùng bên phải */
     display: flex;
-    justify-content: end;
+    justify-content: flex-end; /* Đẩy các item sang phải */
+    align-items: center; /* Căn giữa theo chiều dọc */
     gap: 2rem;
 }
-.nav button{
-    display: none;
+
+.nav button#menu-btn { /* Nút menu cho mobile */
+    display: none; /* Sẽ hiển thị ở media query */
+    background: transparent;
+    cursor: pointer;
+    color: var(--color-dark);
 }
-.dark-mode{
+.nav button#menu-btn span.material-icons-sharp {
+    font-size: 2rem;
+}
+
+
+.dark-mode {
     background-color: var(--color-light);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 1.6rem;
+    height: 1.8rem; /* Tăng chiều cao 1 chút */
     width: 4.2rem;
     cursor: pointer;
     border-radius: var(--border-radius-1);
 }
-.dark-mode span{
+
+.dark-mode span {
     font-size: 1.2rem;
     width: 50%;
     height: 100%;
@@ -230,396 +286,419 @@ main .dashboard h3{
     align-items: center;
     justify-content: center;
 }
-.dark-mode span.active{
+
+.dark-mode span.active {
     background-color: var(--color-primary);
-    color: white;
+    color: var(--color-white); /* Đảm bảo màu trắng cho icon active */
     border-radius: var(--border-radius-1);
 }
-.nav .profile{
+
+.nav .profile {
     display: flex;
-    gap: 2rem;
+    gap: 1rem; /* Giảm khoảng cách */
     text-align: right;
+    align-items: center;
 }
-.nav .profile .profile-photo{
+.nav .profile .info p {
+    margin:0; /* Bỏ margin nếu có */
+}
+.nav .profile .info small {
+    display: block; /* Cho small xuống dòng */
+}
+
+.nav .profile .profile-photo {
     width: 2.8rem;
     height: 2.8rem;
     border-radius: 50%;
     overflow: hidden;
+    border: 2px solid var(--color-light); /* Thêm viền nhẹ */
 }
-.main-nemu {
-    display: flex;
-    align-items: center;
-    justify-content: space-between; /* Đưa h1 sang trái và nav sang phải */
+.nav .profile .profile-photo img {
+    width: 100%;
+    height: 100%;
+}
 
-    gap: 1rem; /* Khoảng cách giữa h1 và nav */
-}
-.main-nemu h1 {
-    font-size: 1.8rem; /* Có thể điều chỉnh kích thước chữ */
-    font-weight: 800;
-    margin: 0; /* Loại bỏ margin mặc định */
-}
-.main-nemu .nav {
+
+.main-nemu { /* Container cho H1 và Nav */
     display: flex;
     align-items: center;
-    gap: 1rem; /* Khoảng cách giữa các phần tử trong nav */
+    justify-content: space-between;
+    margin-bottom: 1.5rem; /* Thêm khoảng cách dưới */
 }
-/*  */
+
+/* ----- Controller Styling (Export, Import, Filters etc.) ----- */
+.student-controller { /* Wrapper cho các nút điều khiển bảng */
+    margin-bottom: 1.5rem;
+}
+.controller-top {
+    display: flex;
+    justify-content: space-between; /* Đẩy các nhóm nút ra hai bên */
+    align-items: center;
+    flex-wrap: wrap; /* Cho phép xuống dòng trên màn hình nhỏ */
+    gap: 1rem; /* Khoảng cách giữa các nhóm nút */
+    margin-bottom: 1rem; /* Khoảng cách với bảng hoặc controller-bottom */
+}
+/* Các nút chung trong controller */
+.controller-top button,
+.controller-bottom button,
+.add-button-table { /* Áp dụng cho cả nút "Thêm Sản Phẩm Mới" */
+    padding: 0.6rem 1rem;
+    border-radius: var(--border-radius-1);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-white);
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+    display: inline-flex; /* Để icon và text căn giữa */
+    align-items: center;
+    gap: 0.5rem;
+}
+.controller-top button:hover,
+.controller-bottom button:hover,
+.add-button-table:hover {
+    opacity: 0.85;
+}
+
+.controller-top .top-left { /* Nhóm nút bên trái (nếu có) */
+    display: flex;
+    gap: 0.8rem;
+}
+.controller-top .top-right { /* Nhóm nút bên phải (Export, Import) */
+    display: flex;
+    gap: 0.8rem;
+    margin-left: auto; /* Đẩy sang phải nếu .top-left không có */
+}
+
+.add-button-table { /* Nút Thêm Sản Phẩm Mới */
+    background-color: var(--color-success);
+    margin-bottom: 1rem; /* Khoảng cách với bảng */
+}
+.add-button-table i, /* Nếu dùng FontAwesome */
+.add-button-table span.material-icons-sharp { /* Nếu dùng Material Icons */
+    margin-right: 0.3rem;
+}
+
+
+.controller-top button.export {
+    background-color: var(--color-success); /* Xanh lá cho export */
+}
+.controller-top button.import {
+    background-color: var(--color-primary); /* Xanh dương cho import */
+}
+
+/* Controller-bottom (Nếu có filters) */
+.controller-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: var(--color-white);
+    border-radius: var(--border-radius-1);
+    box-shadow: var(--box-shadow);
+}
+.controller-bottom input,
+.controller-bottom select {
+    flex: 1 1 150px; /* Cho phép co giãn, base 150px */
+    padding: 0.6rem;
+    border: 1px solid var(--color-light);
+    border-radius: var(--border-radius-1);
+    font-size: 0.85rem;
+    background-color: var(--color-background); /* Nền cho input */
+    color: var(--color-dark);
+}
+.controller-bottom button.filter {
+    background-color: var(--color-primary);
+}
+.controller-bottom button.reset {
+    background-color: var(--color-warning);
+    color: var(--color-dark); /* Text màu tối cho dễ đọc trên nền vàng */
+}
+
+
+/* ----- Table Styling ----- */
+.table-container { /* Thay thế .main .table */
+    background-color: var(--color-white);
+    padding: var(--card-padding);
+    text-align: left; /* Căn trái cho nội dung bảng */
+    box-shadow: var(--box-shadow);
+    border-radius: var(--card-border-radius);
+    transition: box-shadow 0.3s ease; /* Sửa lỗi chính tả */
+    overflow-x: auto; /* Cho phép cuộn ngang nếu bảng quá rộng */
+}
+.table-container:hover {
+    box-shadow: none;
+}
+.table-container h2 { /* Tiêu đề "Danh Sách Sản Phẩm" */
+    margin-bottom: 1rem;
+    font-size: 1.4rem; /* Điều chỉnh kích thước */
+    font-weight: 600;
+}
+
+#productTable { /* ID của bảng */
+    width: 100%;
+    border-collapse: collapse; /* Gộp viền ô */
+}
+#productTable th,
+#productTable td {
+    padding: 0.8rem 1rem; /* Padding cho ô */
+    border-bottom: 1px solid var(--color-light);
+    text-align: left; /* Căn trái nội dung ô */
+}
+#productTable th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--color-dark-variant);
+    text-transform: uppercase; /* Viết hoa tiêu đề cột */
+    background-color: var(--color-background); /* Nền nhẹ cho header */
+}
+#productTable tbody tr:last-child td {
+    border-bottom: none; /* Bỏ viền cho dòng cuối */
+}
+#productTable tbody tr:hover {
+    background-color: var(--color-light); /* Highlight dòng khi hover */
+}
+#productTable tbody td {
+    color: var(--color-dark-variant);
+    font-size: 0.85rem;
+    vertical-align: middle; /* Căn giữa nội dung ô theo chiều dọc */
+}
+/* Style cho ảnh sản phẩm trong bảng */
+.product-image {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: var(--border-radius-1);
+    border: 1px solid var(--color-light);
+}
+
+/* ----- Action Buttons trong bảng (Sửa, Xóa) ----- */
+#productTable .action-buttons a,
+#productTable .action-buttons button {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 0.8rem;
+    margin-right: 0.5rem;
+    border-radius: var(--border-radius-1);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+    color: var(--color-white); /* Mặc định chữ màu trắng */
+}
+#productTable .action-buttons a:last-child,
+#productTable .action-buttons button:last-child {
+    margin-right: 0;
+}
+#productTable .action-buttons a:hover,
+#productTable .action-buttons button:hover {
+    opacity: 0.8;
+}
+
+#productTable .action-edit { /* Nút Sửa */
+    background-color: var(--color-warning);
+    color: var(--color-dark); /* Chữ màu tối cho dễ đọc trên nền vàng */
+}
+#productTable .action-delete { /* Nút Xóa */
+    background-color: var(--color-danger);
+}
+#productTable .action-buttons .material-icons-sharp {
+    font-size: 1.1em; /* Kích thước icon */
+    margin-right: 0.3em;
+}
+
+/* ----- Pagination Controls ----- */
+.pagination-controls {
+    margin-top: 1.5rem;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.8rem;
+}
+.pagination-controls button {
+    padding: 0.5rem 1rem;
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border-radius: var(--border-radius-1);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.pagination-controls button:hover:not(:disabled) {
+    background-color: var(--color-dark-variant);
+}
+.pagination-controls button:disabled {
+    background-color: var(--color-light);
+    color: var(--color-info-dark);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+.pagination-controls #currentPageDisplay {
+    font-size: 0.9rem;
+    color: var(--color-dark-variant);
+    font-weight: 500;
+}
+
+/* ----- Message Display Area (Cho thông báo từ JS) ----- */
+.message-area {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: var(--border-radius-1);
+    font-size: 0.9rem;
+    text-align: center;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.message-area.hidden {
+    display: none; /* Hoặc opacity: 0; transform: translateY(-20px); */
+}
+.success-message {
+    background-color: var(--color-success);
+    color: var(--color-white);
+    border: 1px solid darken(var(--color-success), 10%);
+}
+.error-message {
+    background-color: var(--color-danger);
+    color: var(--color-white);
+    border: 1px solid darken(var(--color-danger), 10%);
+}
+.info-message {
+    background-color: var(--color-light); /* Màu nền sáng hơn cho info */
+    color: var(--color-dark);
+    border: 1px solid var(--color-primary);
+}
+
+
+/* ----- Media Queries ----- */
 @media screen and (max-width: 1200px) {
-    .container{
-        width: 95%;
-        grid-template-columns: 7rem auto 23rem;
+    .container {
+        width: 94%; /* Điều chỉnh lại width */
+        grid-template-columns: 7rem auto; /* Bỏ cột thứ 3 không cần thiết cho layout 2 cột */
     }
 
-    aside .logo h2{
+    aside .toggle .logo h2 { /* Ẩn tên nhóm khi thu nhỏ */
         display: none;
     }
 
-    aside .sidebar h3{
+    aside .sidebar h3 { /* Ẩn text menu */
         display: none;
     }
 
-    aside .sidebar a{
-        width: 5.6rem;
+    aside .sidebar a {
+        width: 5.6rem; /* Chiều rộng của icon */
+        justify-content: center; /* Căn giữa icon */
+        margin-left: 0;
+    }
+     aside .sidebar a.active span.material-icons-sharp {
+        margin-left: 0; /* Reset margin khi active */
     }
 
-    aside .sidebar a:last-child{
+    aside .sidebar a:last-child { /* Nút logout */
         position: relative;
         margin-top: 1.8rem;
     }
-
-    main .dashboard{
-        grid-template-columns: 1fr;
-        gap: 0;
-    }
-
-
-
-    main .new-student {
-        width: 94%;
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        margin: 2rem 0 0 0.8rem;
-    }
-
-    main .new-student table{
-        width: 83vw;
-    }
-
-    main table thead tr th:last-child,
-    main table thead tr th:first-child{
-        display: none;
-    }
-
-
-
+    /* Các style cho .main .new-student không có trong HTML qlsp, tạm thời giữ lại nếu dùng ở trang khác */
 }
+
 @media screen and (max-width: 768px) {
-    .container{
+    .container {
         width: 100%;
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* Một cột duy nhất */
         padding: 0 var(--padding-1);
     }
 
-    aside{
+    aside {
         position: fixed;
         background-color: var(--color-white);
-        width: 15rem;
-        z-index: 3;
-        box-shadow: 1rem 3rem 4rem var(--color-light);
+        width: 18rem; /* Tăng chiều rộng sidebar mobile */
+        z-index: 1000; /* Đảm bảo sidebar nổi lên trên */
+        box-shadow: 0.5rem 0 2rem var(--color-light);
         height: 100vh;
         left: -100%;
-        display: none;
+        display: block; /* Luôn là block để animation hoạt động */
         animation: showMenu 0.4s ease forwards;
+        /* Initial state for animation */
+        transform: translateX(-100%);
+        transition: transform 0.4s ease;
+    }
+    aside.active { /* Class 'active' sẽ được JS thêm/xóa */
+        transform: translateX(0);
     }
 
-    @keyframes showMenu {
-       to{
-        left: 0;
-       }
+    @keyframes showMenu { /* Không cần nữa nếu dùng transform */
+       /* to { left: 0; } */
     }
 
-    aside .logo{
-        margin-left: 1rem;
+    aside .toggle .logo {
+        margin-left: 1.5rem; /* Căn lề logo */
     }
 
-    aside .logo h2{
+    aside .toggle .logo h2 { /* Hiển thị lại tên nhóm */
         display: inline;
     }
 
-    aside .sidebar h3{
+    aside .sidebar h3 { /* Hiển thị lại text menu */
         display: inline;
     }
 
-    aside .sidebar a{
+    aside .sidebar a { /* Reset style cho link sidebar */
         width: 100%;
         height: 3.4rem;
+        justify-content: flex-start; /* Căn trái icon và text */
+        margin-left: 2rem;
+    }
+    aside .sidebar a.active {
+        border-top-left-radius: 0; /* Bỏ bo góc riêng khi full width */
+        border-bottom-left-radius: 0;
+    }
+     aside .sidebar a.active span.material-icons-sharp {
+        margin-left: calc(1rem - 3px); /* Giữ lại cách căn lề khi active */
     }
 
-    aside .sidebar a:last-child{
+    aside .sidebar a:last-child { /* Nút logout */
         position: absolute;
         bottom: 5rem;
     }
 
-    aside .toggle .close{
+    aside .toggle .close { /* Nút đóng sidebar */
         display: inline-block;
         cursor: pointer;
+        padding-right: 1.5rem;
     }
 
-main{
-        margin-top: 8rem;
+    main {
+        margin-top: 1rem; /* Giảm margin top khi nav bar cố định */
         padding: 0 1rem;
+        padding-top: 5.6rem; /* Khoảng trống cho nav bar cố định */
     }
 
-
-main .new-student{
-        position: relative;
-        margin: 3rem 0 0 0;
-        width: 100%;
-    }
-
-    main .new-student table{
-        width: 100%;
-        margin: 0;
-    }
-
-
-
-     .nav{
+    .nav { /* Nav bar trên mobile */
         position: fixed;
         top: 0;
         left: 0;
+        right:0; /* Đảm bảo full width */
         align-items: center;
         background-color: var(--color-white);
         padding: 0 var(--padding-1);
         height: 4.6rem;
         width: 100%;
-        z-index: 2;
-        box-shadow: 0 1rem 1rem var(--color-light);
+        z-index: 999; /* Dưới sidebar nhưng trên content */
+        box-shadow: 0 0.5rem 1rem var(--color-light);
         margin: 0;
     }
 
-     .nav .dark-mode{
-        width: 4.4rem;
-        position: absolute;
-        left: 66%;
-    }
-
-     .profile .info{
+    .nav .profile .info { /* Ẩn thông tin text của profile */
         display: none;
     }
 
-     .nav button{
+    .nav button#menu-btn { /* Hiển thị nút menu */
         display: inline-block;
-        background-color: transparent;
-        cursor: pointer;
-        color: var(--color-dark);
-        position: absolute;
-        left: 1rem;
+        position: static; /* Bỏ absolute */
+        margin-right: auto; /* Đẩy các item khác sang phải */
     }
 
-     .nav button span{
-        font-size: 2rem;
+    .nav .dark-mode { /* Nút dark mode trên mobile */
+        width: 4.2rem; /* Điều chỉnh lại width nếu cần */
+        /* position: absolute; left: 66%; Xóa để dùng flexbox */
     }
-
 }
-/* Controller-top-rigth */
-/* controller-top */
-.controller-top {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 14px 0 0;
-    align-items: center;
-}
-.controller-top button#add{
-    background-color: #28a745;
-}
-.controller-top button {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-.controller-top button i {
-    margin-right: 5px;
-}
-
-.controller-top .top-right {
-    margin-left: auto; /* Đẩy toàn bộ nhóm nút sang bên phải */
-    display: flex;
-    gap: 10px; /* Khoảng cách giữa các nút */
-    align-items: center;
-}
-
-.controller-top .top-right input {
-    flex-grow: 1; /* Tự động mở rộng theo không gian còn lại */
-    max-width: 300px; /* Đảm bảo không quá dài */
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
-}
-
-.controller-top .top-right button {
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-
-
-
-
-/* controller-top */
-.controller-top {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 14px 0 0;
-    align-items: center;
-}
-.controller-top button {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
-}
-
-.controller-top button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-.controller-top .top-right {
-    margin-left: auto; /* Đẩy toàn bộ nhóm nút sang bên phải */
-    display: flex;
-    gap: 10px; /* Khoảng cách giữa các nút */
-}
-.controller-top button i {
-    margin-right: 5px;
-}
-
-.controller-top .export,
-.controller-top .import {
-    background-color: #28a745;
-    color: white;
-    border: none;
-    cursor: pointer;
-
-}
-
-.controller-top .import {
-    background-color: #007bff;
-}
-
-/* controller-bottom */
-.controller-bottom {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 14px 0 0;
-    width: 100%; /* Trải dài toàn bộ chiều ngang */
-}
-
-.controller-bottom input,
-.controller-bottom select,
-.controller-bottom button {
-    flex: 1; /* Các thành phần chia đều chiều ngang */
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
-    min-width: 100px; /* Đảm bảo nút không quá nhỏ */
-}
-
-.controller-bottom input[type="date"] {
-    padding-right: 30px;
-}
-
-.controller-bottom button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-.controller-bottom button.reset {
-    background-color: #dc3545;
-}
-
-.controller-bottom button i {
-    margin-right: 5px;
-}
-/* Table */
-main .table{
-    margin-bottom: 1.3rem;
-    margin-top: 9px;
-}
-main .table h2{
-    margin-bottom: 0.7rem;
-}
-main table{
-    background-color: var(--color-white);
-    width: 100%;
-    padding: var(--card-padding);
-    text-align: center;
-    box-shadow: var(--box-shadow);
-    border-radius: var(--card-border-radius);
-    transition: all 0.3s ease;
-}
-main .table:hover{
-    box-shadow: none;
-}
-main table tbody td{
-    height: 2.8rem;
-    border-bottom: 1px solid var(--color-light);
-    color: var(--color-dark-variant);
-}
-main table tbody tr:last-child td{
-    border: none;
-}
-main .table a{
-    text-align: center;
-    display: block;
-    margin: 1rem auto;
-    color: var(--color-primary);
-}
-/* Các nút hành động */
-/* Định dạng chung cho các nút icon */
-.icon-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 5px;
-    margin: 0 2px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    color: #555; /* Màu mặc định */
-}
-
-.icon-btn:hover {
-    color: #007bff; /* Màu khi hover */
-}
-
-.view-btn {
-    color: #28a745; /* Màu icon "Xem chi tiết" */
-}
-
-.edit-btn {
-    color: #ffc107; /* Màu icon "Cập nhật" */
-}
-
-.delete-btn {
-    color: #dc3545; /* Màu icon "Xóa" */
-}
-
