@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="/css/qlsp.css">
+  <title>Quản trị viên - Quản lý Sản phẩm</title>
+  <style>
+    /* CSS for Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 25px;
+        border: 1px solid #888;
+        width: 90%;
+        max-width: 600px;
+        border-radius: 8px;
+        position: relative;
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    }
+
+    .close-button {
+        color: #aaa;
+        font-size: 28px;
+        font-weight: bold;
+        position: absolute;
+        top: 10px;
+        right: 20px;
+    }
+
+    .close-button:hover,
+    .close-button:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .modal-content label {
+        display: block;
+        margin-top: 10px;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .modal-content input[type="text"],
+    .modal-content input[type="number"],
+    .modal-content input[type="url"],
+    .modal-content input[type="date"] {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .modal-content button {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .modal-content .save-btn {
+        background-color: #4CAF50; /* Green */
+        color: white;
+    }
+    .modal-content .save-btn:hover {
+        background-color: #45a049;
+    }
+
+    .modal-content .cancel-btn {
+        background-color: #f44336; /* Red */
+        color: white;
+        margin-left: 10px;
+    }
+     .modal-content .cancel-btn:hover {
+        background-color: #da190b;
+    }
+
+    /* Toast Notification Styling */
+    .toast {
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        min-width: 250px;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 5px;
+        padding: 16px;
+        z-index: 1001;
+        font-size: 17px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    .toast.success {
+        background-color: #4CAF50;
+    }
+    .toast.error {
+        background-color: #f44336;
+    }
+
+    /* Table Styling */
+    #productTable {
+        table-layout: fixed;
+        width: 100%;
+        border-collapse: collapse;
+    }
+    #productTable td, #productTable th {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        padding: 10px 8px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+    #productTable th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
+    #productTable img {
+        max-width: 60px;
+        height: auto;
+        border-radius: 4px;
+        display: block;
+        margin: auto;
+    }
+    .action-buttons button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 5px;
+        margin: 0 2px;
+        font-size: 1.1em;
+    }
+    .action-buttons .edit-btn { color: #ffa500; }
+    .action-buttons .delete-btn { color: #f44336; }
+    .action-buttons { text-align: center; }
+
+
+    /* Pagination Styling */
+    .pagination-controls {
+        padding: 15px 0;
+        text-align: center;
+    }
+    .pagination-controls button {
+        padding: 8px 12px;
+        margin: 0 5px;
+        border: 1px solid #ddd;
+        background-color: #f9f9f9;
+        cursor: pointer;
+        border-radius: 4px;
+        /* THÊM DÒNG SAU ĐỂ ĐỔI MÀU CHỮ NÚT PHÂN TRANG */
+        color: #000000; /* Màu đen cho chữ */
+    }
+    .pagination-controls button:hover:not(:disabled) {
+        background-color: #e9e9e9;
+    }
+    .pagination-controls button:disabled {
+        background-color: #eee;
+        color: #000000; /* Chữ màu xám khi bị vô hiệu hóa */
+        cursor: not-allowed;
+    }
+    .pagination-controls span {
+        padding: 8px 12px;
+        margin: 0 5px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <aside>
+    <div class="toggle">
+      <div class="logo">
+        <img src="https://cdn-001.haui.edu.vn//img/logo-haui-size.png" alt="Logo HAUI">
+        <h2>NHÓM 17</h2>
+      </div>
+      <div class="close" id="close-btn">
+        <span class="material-icons-sharp">close</span>
+      </div>
+    </div>
+    <div class="sidebar">
+      <a href="#">
+        <span class="material-icons-sharp">dashboard</span>
+        <h3>Dashboard</h3>
+      </a>
+      <a href="#">
+        <span class="material-icons-sharp">inventory</span>
+        <h3>Quản lý đơn hàng</h3>
+      </a>
+      <a href="/admin/manage-products" class="active">
+        <span class="material-icons-sharp">production_quantity_limits</span>
+        <h3>Quản lý sản phẩm</h3>
+      </a>
+      <a href="#">
+        <span class="material-icons-sharp">segment</span>
+        <h3>Quản lý danh mục</h3>
+      </a>
+      <a href="#">
+        <span class="material-icons-sharp">warehouse</span>
+        <h3>Quản lý kho hàng</h3>
+      </a>
+      <a href="#">
+        <span class="material-icons-sharp">inventory_2</span>
+        <h3>Quản lý cung ứng</h3>
+      </a>
+      <a href="/admin/manage-customer" >
+        <span class="material-icons-sharp">people</span>
+        <h3>Khách hàng</h3>
+      </a>
+      <a href="#">
+        <span class="material-icons-sharp">insights</span>
+        <h3>Analytics</h3>
+      </a>
+      <a href="#">
+        <span class="material-icons-sharp">person_outline</span>
+        <h3>Staff</h3>
+      </a>
+      <a href="#">
+        <span class="material-icons-sharp">manage_accounts</span>
+        <h3>Admin</h3>
+      </a>
+      <a href="#">
+        <span class="material-icons-sharp">logout</span>
+        <h3>Logout</h3>
+      </a>
+    </div>
+  </aside>
+
+  <main>
+    <div id="dashboard-content" class="active">
+      <div class="main-nemu"> <h1>QUẢN LÝ SẢN PHẨM</h1>
+        <div class="nav">
+          <button id="menu-btn">
+            <span class="material-icons-sharp">menu</span>
+          </button>
+          <div class="dark-mode">
+            <span class="material-icons-sharp active">light_mode</span>
+            <span class="material-icons-sharp">dark_mode</span>
+          </div>
+          <div class="profile">
+            <div class="info">
+              <p>Hey, <b id="name-id">Reza</b></p>
+              <small class="text-muted" id="office">Admin</small>
+            </div>
+            <div class="profile-photo">
+              <a href="#"> <img src="https://placehold.co/40x40/EFEFEF/AAAAAA&text=AVT" alt="Ảnh đại diện">
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard">
+        <div class="student">
+          <div class="student-controller">
+            <div class="controller-top">
+              <div class="top-right">
+                <button id="addProductBtn" class="add-button-table" style="background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-right: 10px; border: none; cursor:pointer;">
+                  <i class="fas fa-plus mr-2"></i>Thêm Sản Phẩm Mới
+                </button>
+                <button class="export"><i class="fas fa-file-excel"></i>Export Excel</button>
+                <button class="import"><i class="fas fa-file-import"></i>Import Excel</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <h2>Danh Sách Sản Phẩm</h2>
+            <div id="messageDisplayGlobal" class="message-area hidden" style="padding: 10px; margin: 10px 0; border-radius: 5px; text-align: center;"></div>
+            <table id="productTable">
+              <thead>
+              <tr>
+                <th style="width: 5%;">ID</th>
+                <th style="width: 10%;">Ảnh</th>
+                <th style="width: 20%;">Tên Sản Phẩm</th>
+                <th style="width: 15%;">Danh Mục</th>
+                <th style="width: 10%; text-align: right;">Giá</th>
+                <th style="width: 10%; text-align: right;">Tồn Kho</th>
+                <th style="width: 10%; text-align: right;">Đã Bán</th>
+                <th style="width: 10%;">Ngày SX</th>
+                <th style="width: 10%;">Hạn SD</th>
+                <th style="width: 10%; text-align: center;">Hành Động</th>
+              </tr>
+              </thead>
+              <tbody id="productTableBody">
+              </tbody>
+            </table>
+            <div class="pagination-controls">
+              <button id="prevPageButton" disabled>Trang Trước</button>
+              <span id="currentPageDisplay">Trang: 1</span>
+              <button id="nextPageButton">Trang Sau</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="productModal" class="modal">
+  <div class="modal-content">
+    <span class="close-button" id="closeModalBtn">&times;</span>
+    <h2 id="modalTitle" style="text-align: center; margin-bottom: 20px; font-size: 1.5em;">Thêm Sản Phẩm Mới</h2>
+
+  </div>
+</div>
+
+<div id="toast" class="toast">
+  <span id="toastMessage"></span>
+</div>
+
+</body>
+</html>

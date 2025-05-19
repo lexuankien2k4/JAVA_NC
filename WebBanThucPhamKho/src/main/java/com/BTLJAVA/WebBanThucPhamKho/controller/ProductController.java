@@ -33,7 +33,7 @@ public class ProductController {
                 .build();
     }
 
-// @PreAuthorize("hasRole('ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseData<ProductResponse> createProduct(@RequestBody ProductRequest productRequest) {
         ProductResponse product = productService.createProduct(productRequest);
@@ -45,7 +45,7 @@ public class ProductController {
                 .build();
     }
 
-// @PreAuthorize("hasRole('ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}")
     public ResponseData<ProductResponse> updateProduct(
             @PathVariable("id") Integer id,
@@ -59,7 +59,7 @@ public class ProductController {
                 .data(product)
                 .build();
     }
-//    @PreAuthorize("hasRole('ADMIN')")
+    //    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseData<String> deleteProduct(@PathVariable("id") Integer id) {
         productService.deleteProduct(id);
@@ -69,7 +69,7 @@ public class ProductController {
                 .data("Product with ID " + id + " has been deleted")
                 .build();
     }
-//    @PreAuthorize("hasRole('ADMIN')")
+    //    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseData<ProductResponse> getProductById(@PathVariable("id") Integer id) {
         // Bạn sẽ cần tạo phương thức getProductById trong ProductService

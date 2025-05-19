@@ -17,4 +17,9 @@ public interface UserService extends UserDetailsService {
 
     UserResponse updateUser(Integer id, UserUpdateRequest userUpdate);
     void deleteUser(Integer id);
+    UserResponse getUserResponseById(Integer id); // Mới
+
+    UserResponse updateUserByAdmin(Integer id, UserUpdateRequest userUpdateRequest); // Mới hoặc điều chỉnh
+
+    UserResponse toggleUserLockStatus(Integer id); // Mới
 }

@@ -9,10 +9,12 @@ public class UserMapper {
     public UserResponse toDTO(User user) {
         return UserResponse.builder()
                 .id(user.getId())
+                .userName(user.getUsername())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .email(user.getEmail())
                 .phone(user.getPhone())
+                .isLock(user.getIsLock())
                 .build();
     }
 }

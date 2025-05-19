@@ -701,4 +701,6 @@ main .dashboard h1 { /* Kiểu cho tiêu đề WELCOME */
         width: 4.2rem; /* Điều chỉnh lại width nếu cần */
         /* position: absolute; left: 66%; Xóa để dùng flexbox */
     }
+
+
 }

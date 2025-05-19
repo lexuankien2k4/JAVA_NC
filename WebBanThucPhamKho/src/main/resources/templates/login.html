@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập & Đăng ký</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 25px 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="tel"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            word-wrap: break-word;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .toggle-form {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .toggle-form a {
+            color: #007bff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .toggle-form a:hover {
+            text-decoration: underline;
+        }
+
+        .hidden-form {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="login-form-container">
+        <h2>Đăng nhập</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginUsername">Tên đăng nhập:</label>
+                <input type="text" id="loginUsername" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Mật khẩu:</label>
+                <input type="password" id="loginPassword" name="password" required>
+            </div>
+            <button type="submit">Đăng nhập</button>
+            <div id="loginMessage" class="message" style="display: none;"></div>
+        </form>
+        <div class="toggle-form">
+            <p>Chưa có tài khoản? <a onclick="toggleForms()">Đăng ký ngay</a></p>
+        </div>
+    </div>
+
+    <div id="register-form-container" class="hidden-form">
+        <h2>Đăng ký</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="registerUsername">Tên đăng nhập:</label>
+                <input type="text" id="registerUsername" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="registerFirstName">Tên:</label>
+                <input type="text" id="registerFirstName" name="firstName" required>
+            </div>
+            <div class="form-group">
+                <label for="registerLastName">Họ:</label>
+                <input type="text" id="registerLastName" name="lastName" required>
+            </div>
+            <div class="form-group">
+                <label for="registerEmail">Email:</label>
+                <input type="email" id="registerEmail" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="registerPassword">Mật khẩu:</label>
+                <input type="password" id="registerPassword" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="registerPhone">Số điện thoại:</label>
+                <input type="tel" id="registerPhone" name="phone">
+            </div>
+            <button type="submit">Đăng ký</button>
+            <div id="registerMessage" class="message" style="display: none;"></div>
+        </form>
+        <div class="toggle-form">
+            <p>Đã có tài khoản? <a onclick="toggleForms()">Đăng nhập</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const loginFormContainer = document.getElementById('login-form-container');
+    const registerFormContainer = document.getElementById('register-form-container');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const loginMessageDiv = document.getElementById('loginMessage');
+    const registerMessageDiv = document.getElementById('registerMessage');
+
+    const API_AUTH_URL = '/api/v1/auth';
+
+    function storeToken(token) { localStorage.setItem('accessToken', token); }
+    function storeRefreshToken(token) { localStorage.setItem('refreshToken', token); }
+    function storeLoggedInUser(userData) { localStorage.setItem('loggedInUser', JSON.stringify(userData)); }
+
+    function toggleForms() {
+        loginFormContainer.classList.toggle('hidden-form');
+        registerFormContainer.classList.toggle('hidden-form');
+        hideMessages();
+    }
+
+    function displayMessage(element, message, isSuccess) {
+        if (!element) return;
+        element.textContent = message;
+        element.className = 'message ' + (isSuccess ? 'success' : 'error');
+        element.style.display = 'block';
+        console.log(`Message displayed (${isSuccess ? 'SUCCESS' : 'ERROR'}):`, message);
+    }
+
+    function hideMessages() {
+        if (loginMessageDiv) { loginMessageDiv.style.display = 'none'; loginMessageDiv.textContent = ''; }
+        if (registerMessageDiv) { registerMessageDiv.style.display = 'none'; registerMessageDiv.textContent = ''; }
+    }
+
+    async function handleApiResponse(response, messageElement, successCallback, formType) {
+        console.log(`${formType} - HTTP Status:`, response.status);
+        const contentType = response.headers.get("content-type");
+        let responseData = null; // Initialize to null
+        let rawResponseText = null; // To store raw text if JSON parsing fails
+
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            try {
+                responseData = await response.json();
+                console.log(`${formType} - Parsed JSON Response:`, responseData);
+            } catch (e) {
+                console.error(`${formType} - Failed to parse JSON response body:`, e);
+                // Try to get raw text for debugging if JSON parsing fails
+                try {
+                    rawResponseText = await response.text(); // Re-clone and read as text
+                    console.error(`${formType} - Raw text response (JSON parse failed):`, rawResponseText.substring(0, 500));
+                } catch (textError) {
+                    console.error(`${formType} - Failed to read response as text either:`, textError);
+                }
+                displayMessage(messageElement, `Lỗi xử lý phản hồi từ server (không phải JSON hợp lệ). Status: ${response.status}`, false);
+                return; // Exit if JSON parsing failed
+            }
+        } else {
+            rawResponseText = await response.text();
+            console.warn(`${formType} - Response was not JSON. Content-Type: ${contentType}. Status: ${response.status}. Raw Text (first 200 chars):`, rawResponseText.substring(0, 200));
+            if (!response.ok) {
+                displayMessage(messageElement, `Lỗi từ server: ${response.statusText || 'Không rõ lỗi'}. (Code: ${response.status})`, false);
+                return; // Exit if not OK and not JSON
+            }
+            // If response.ok but not JSON, responseData remains null.
+            // This can happen for 204 No Content, or if server sends text on success.
+        }
+
+        // Now check responseData and response.ok
+        if (response.ok) { // HTTP status 200-299
+            if (responseData && (responseData.status === 201 || responseData.status === 200)) {
+                // Backend specific success status and we have JSON data
+                if (successCallback) {
+                    successCallback(responseData.data); // Pass the actual data part from ResponseData
+                }
+            } else {
+                // HTTP OK, but backend status in JSON is missing, not 200/201, or responseData is null (e.g. 204 No Content that we didn't expect)
+                const appStatus = responseData ? responseData.status : 'undefined (no JSON data or status field)';
+                const messageDetail = responseData ? (responseData.message || responseData.error || JSON.stringify(responseData).substring(0,100) + "...") : (rawResponseText ? rawResponseText.substring(0,100) + "..." : "Không có nội dung chi tiết.");
+                const errorMessage = `Phản hồi không mong đợi từ server (HTTP ${response.status}, App Status ${appStatus}). Chi tiết: ${messageDetail}`;
+                displayMessage(messageElement, `Lỗi ${formType.toLowerCase()}: ${errorMessage}`, false);
+                console.error("Unexpected success response structure:", responseData, "Raw text if any:", rawResponseText);
+            }
+        } else { // HTTP status indicates error (4xx, 5xx)
+            const appStatus = responseData ? responseData.status : 'N/A';
+            const messageDetail = responseData ? (responseData.message || responseData.error || JSON.stringify(responseData)) : (rawResponseText || response.statusText);
+            const errorMessage = `${messageDetail} (HTTP Code: ${response.status}, App Code: ${appStatus})`;
+            displayMessage(messageElement, `Lỗi ${formType.toLowerCase()}: ${errorMessage}`, false);
+            console.error("Error response structure:", responseData, "Raw text if any:", rawResponseText);
+        }
+    }
+
+
+    // Handle Registration
+    if (registerForm) {
+        registerForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            hideMessages();
+            console.log('Register form submitted');
+
+            const formData = new FormData(registerForm);
+            const phoneString = formData.get('phone');
+            let phoneNumber = null;
+            if (phoneString && phoneString.trim() !== "") {
+                const parsedPhone = parseInt(phoneString.trim(), 10);
+                if (!isNaN(parsedPhone)) {
+                    phoneNumber = parsedPhone;
+                } else {
+                    displayMessage(registerMessageDiv, 'Số điện thoại không hợp lệ.', false);
+                    return;
+                }
+            }
+
+            const userData = {
+                username: formData.get('username'),
+                firstName: formData.get('firstName'),
+                lastName: formData.get('lastName'),
+                email: formData.get('email'),
+                password: formData.get('password'),
+                phone: phoneNumber
+            };
+            console.log('User data for registration:', JSON.stringify(userData));
+
+            try {
+                const response = await fetch(`${API_AUTH_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData),
+                });
+
+                await handleApiResponse(response, registerMessageDiv, (data) => {
+                    displayMessage(registerMessageDiv, `Đăng ký thành công! Chào mừng ${data?.userName || userData.username}. Bạn có thể đăng nhập ngay.`, true);
+                    registerForm.reset();
+                }, "Đăng ký");
+
+            } catch (error) {
+                console.error('Network or JS error during registration:', error);
+                displayMessage(registerMessageDiv, 'Đã xảy ra lỗi kết nối hoặc xử lý. Vui lòng thử lại.', false);
+            }
+        });
+    }
+
+    // Handle Login
+    if (loginForm) {
+        loginForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            hideMessages();
+            console.log('Login form submitted');
+
+            const formData = new FormData(loginForm);
+            const loginData = {
+                username: formData.get('username'),
+                password: formData.get('password'),
+            };
+            console.log('Login data:', JSON.stringify(loginData));
+
+            try {
+                const response = await fetch(`${API_AUTH_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(loginData),
+                });
+
+                await handleApiResponse(response, loginMessageDiv, (authData) => {
+                    // authData here is AuthenticationResponse (the 'data' field from ResponseData)
+                    const greetingName = authData.userResponse ? authData.userResponse.userName : loginData.username;
+                    displayMessage(loginMessageDiv, `Đăng nhập thành công! Chào mừng ${greetingName}. Đang chuyển hướng...`, true);
+
+                    if (authData.accessToken) storeToken(authData.accessToken);
+                    if (authData.refreshToken) storeRefreshToken(authData.refreshToken);
+                    if (authData.userResponse) storeLoggedInUser(authData.userResponse);
+
+                    loginForm.reset();
+                    setTimeout(() => {
+                        // **QUAN TRỌNG: Thay đổi '/admin/manage-customer.html' thành đường dẫn trang admin của bạn**
+                        window.location.href = '/admin/dashboard'; // Ví dụ
+                    }, 1500);
+                }, "Đăng nhập");
+
+            } catch (error) {
+                console.error('Network or JS error during login:', error);
+                displayMessage(loginMessageDiv, 'Đã xảy ra lỗi kết nối hoặc xử lý. Vui lòng thử lại.', false);
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

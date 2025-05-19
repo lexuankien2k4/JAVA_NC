@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="/css/qlsp.css"> <title>Quản trị viên - Quản lý Khách Hàng</title>
+  <style>
+    /* CSS for Modal */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+    .modal-content { background-color: #fefefe; margin: 5% auto; padding: 25px; border: 1px solid #888; width: 90%; max-width: 500px; border-radius: 8px; position: relative; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19); }
+    .close-button { color: #aaa; font-size: 28px; font-weight: bold; position: absolute; top: 10px; right: 20px; }
+    .close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
+    .modal-content label { display: block; margin-top: 10px; margin-bottom: 5px; font-weight: bold; }
+    .modal-content input[type="text"], .modal-content input[type="email"], .modal-content input[type="password"], .modal-content input[type="tel"] { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .modal-content button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    .modal-content .save-btn { background-color: #4CAF50; color: white; }
+    .modal-content .save-btn:hover { background-color: #45a049; }
+    .modal-content .cancel-btn { background-color: #f44336; color: white; margin-left: 10px; }
+    .modal-content .cancel-btn:hover { background-color: #da190b; }
+    .toast { display: none; position: fixed; bottom: 20px; right: 20px; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 5px; padding: 16px; z-index: 1001; font-size: 17px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+    .toast.success { background-color: #4CAF50; }
+    .toast.error { background-color: #f44336; }
+    #userTable { table-layout: fixed; width: 100%; border-collapse: collapse; }
+    #userTable td, #userTable th { word-wrap: break-word; overflow-wrap: break-word; padding: 10px 8px; border: 1px solid #ddd; text-align: left; }
+    #userTable th { background-color: #f2f2f2; font-weight: bold; }
+    .action-buttons button { background: none; border: none; cursor: pointer; padding: 5px; margin: 0 2px; font-size: 1.1em; }
+    .action-buttons .edit-btn { color: #ffa500; }
+    .action-buttons .delete-btn { color: #f44336; }
+    .action-buttons .lock-btn { color: #78716c; }
+    .action-buttons .unlock-btn { color: #22c55e; }
+    .action-buttons { text-align: center; }
+    .pagination-controls { padding: 15px 0; text-align: center; }
+    .pagination-controls button { padding: 8px 12px; margin: 0 5px; border: 1px solid #ddd; background-color: #f9f9f9; cursor: pointer; border-radius: 4px; color: #000000; }
+    .pagination-controls button:hover:not(:disabled) { background-color: #e9e9e9; }
+    .pagination-controls button:disabled { background-color: #eee; color: #aaa; cursor: not-allowed; }
+    .pagination-controls span { padding: 8px 12px; margin: 0 5px; }
+    .status-locked { color: red; font-weight: bold; }
+    .status-active { color: green; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <aside>
+    <div class="toggle">
+      <div class="logo">
+        <img src="https://cdn-001.haui.edu.vn//img/logo-haui-size.png" alt="Logo HAUI">
+        <h2>NHÓM 17</h2>
+      </div>
+      <div class="close" id="close-btn-sidebar">
+        <span class="material-icons-sharp">close</span>
+      </div>
+    </div>
+    <div class="sidebar">
+      <a href="#">
+        <span class="material-icons-sharp">dashboard</span>
+        <h3>Dashboard</h3>
+      </a>
+      <a href="#">
+        <span class="material-icons-sharp">inventory</span>
+        <h3>Quản lý đơn hàng</h3>
+      </a>
+      <a href="/products.html">
+        <span class="material-icons-sharp">production_quantity_limits</span>
+        <h3>Quản lý sản phẩm</h3>
+      </a>
+      <a href="#" class="active">
+        <span class="material-icons-sharp">people</span>
+        <h3>Quản lý khách hàng</h3>
+      </a>
+      <a href="#" id="logoutButton">
+        <span class="material-icons-sharp">logout</span>
+        <h3>Logout</h3>
+      </a>
+    </div>
+  </aside>
+
+  <main>
+    <div id="dashboard-content" class="active">
+      <div class="main-nemu">
+        <h1>QUẢN LÝ KHÁCH HÀNG</h1>
+        <div class="nav">
+          <button id="menu-btn-sidebar">
+            <span class="material-icons-sharp">menu</span>
+          </button>
+          <div class="dark-mode">
+            <span class="material-icons-sharp active">light_mode</span>
+            <span class="material-icons-sharp">dark_mode</span>
+          </div>
+          <div class="profile">
+            <div class="info">
+              <p>Hey, <b id="loggedInUserName">Admin</b></p>
+              <small class="text-muted" id="office">Quản trị viên</small>
+            </div>
+            <div class="profile-photo">
+              <a href="#"> <img src="https://placehold.co/40x40/EFEFEF/AAAAAA&text=AVT" alt="Ảnh đại diện">
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard">
+        <div class="student">
+          <div class="student-controller">
+            <div class="controller-top">
+              <div class="top-right">
+                <button id="addUserBtn" class="add-button-table" style="background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-right: 10px; border: none; cursor:pointer;">
+                  <i class="fas fa-user-plus mr-2"></i>Thêm Khách Hàng
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <h2>Danh Sách Khách Hàng</h2>
+            <table id="userTable">
+              <thead>
+              <tr>
+                <th style="width: 5%;">ID</th>
+                <th style="width: 15%;">Tên Đăng Nhập</th>
+                <th style="width: 20%;">Họ Tên</th>
+                <th style="width: 20%;">Email</th>
+                <th style="width: 10%;">Điện Thoại</th>
+                <th style="width: 10%; text-align: center;">Trạng Thái</th>
+                <th style="width: 20%; text-align: center;">Hành Động</th>
+              </tr>
+              </thead>
+              <tbody id="userTableBody">
+              </tbody>
+            </table>
+            <div class="pagination-controls">
+              <button id="prevUserPageButton" disabled>Trang Trước</button>
+              <span id="currentUserPageDisplay">Trang: 1</span>
+              <button id="nextUserPageButton">Trang Sau</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="userModal" class="modal">
+  <div class="modal-content">
+    <span class="close-button" id="closeUserModalBtn">&times;</span>
+    <h2 id="userModalTitle" style="text-align: center; margin-bottom: 20px; font-size: 1.5em;">Thêm Khách Hàng Mới</h2>
+    <form id="userForm">
+      <input type="hidden" id="userId" name="id">
+      <div>
+        <label for="username">Tên Đăng Nhập:</label>
+        <input type="text" id="username" name="username" required>
+      </div>
+      <div style="display: flex; gap: 20px;">
+        <div style="flex: 1;">
+          <label for="firstName">Tên:</label>
+          <input type="text" id="firstName" name="firstName" required>
+        </div>
+        <div style="flex: 1;">
+          <label for="lastName">Họ:</label>
+          <input type="text" id="lastName" name="lastName" required>
+        </div>
+      </div>
+      <div>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+      </div>
+      <div id="password-group">
+        <label for="password">Mật Khẩu:</label>
+        <input type="password" id="password" name="password">
+      </div>
+      <div>
+        <label for="phone">Số Điện Thoại:</label>
+        <input type="tel" id="phone" name="phone">
+      </div>
+      <div style="text-align: right; margin-top: 20px;">
+        <button type="button" id="cancelUserModalBtn" class="cancel-btn">Hủy</button>
+        <button type="submit" id="saveUserBtn" class="save-btn">Lưu</button>
+      </div>
+      <div id="userFormMessage" style="margin-top: 15px; text-align: center; color: red;"></div>
+    </form>
+  </div>
+</div>
+
+<div id="toast" class="toast">
+  <span id="toastMessage"></span>
+</div>
+
+<script>
+  const API_USER_URL = '/api/v1/user';
+
+  // DOM Elements
+  const userTableBody = document.getElementById('userTableBody');
+  const addUserBtn = document.getElementById('addUserBtn');
+  const userModal = document.getElementById('userModal');
+  const closeUserModalBtn = document.getElementById('closeUserModalBtn');
+  const cancelUserModalBtn = document.getElementById('cancelUserModalBtn');
+  const userForm = document.getElementById('userForm');
+  const userModalTitle = document.getElementById('userModalTitle');
+  const userFormMessage = document.getElementById('userFormMessage');
+  const passwordGroup = document.getElementById('password-group');
+  const loggedInUserNameSpan = document.getElementById('loggedInUserName');
+  const logoutButton = document.getElementById('logoutButton');
+
+  const toast = document.getElementById('toast');
+  const toastMessage = document.getElementById('toastMessage');
+
+  const prevUserPageBtn = document.getElementById('prevUserPageButton');
+  const nextUserPageBtn = document.getElementById('nextUserPageButton');
+  const currentUserPageDisplay = document.getElementById('currentUserPageDisplay');
+  let currentUserPage = 0;
+  const userPageSize = 10; // Giả sử backend dùng pageSize là 10 cho API /list
+
+  // --- Token Management ---
+  function getToken() {
+      const token = localStorage.getItem('accessToken');
+      console.log("Retrieved token from localStorage:", token); // DEBUG LOG
+      return token;
+  }
+  function removeToken() {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('loggedInUser');
+      console.log("Tokens and user info removed from localStorage."); // DEBUG LOG
+  }
+  function getLoggedInUser() {
+      const userData = localStorage.getItem('loggedInUser');
+      return userData ? JSON.parse(userData) : null;
+  }
+
+  // --- Utility Functions ---
+  function showToast(message, isSuccess = true) {
+      if (!toast || !toastMessage) return;
+      toastMessage.textContent = message;
+      toast.className = `toast ${isSuccess ? 'success' : 'error'}`;
+      toast.style.display = 'block';
+      setTimeout(() => {
+          toast.style.display = 'none';
+      }, 3000);
+  }
+
+  function updateUserPaginationControls(usersOnPageCount) {
+      if (currentUserPageDisplay) currentUserPageDisplay.textContent = `Trang: ${currentUserPage + 1}`;
+      if (prevUserPageBtn) prevUserPageBtn.disabled = currentUserPage === 0;
+      if (nextUserPageBtn) nextUserPageBtn.disabled = usersOnPageCount < userPageSize;
+  }
+
+  // --- API Call Functions (with Authorization Header) ---
+  async function makeApiCall(url, method = 'GET', body = null) {
+      const token = getToken();
+      const headers = {
+          'Content-Type': 'application/json',
+      };
+      if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+          console.log(`API Call to ${url} with token: Bearer ${token.substring(0, 20)}...`); // DEBUG LOG
+      } else {
+          console.warn(`API Call to ${url} WITHOUT token.`); // DEBUG LOG
+      }
+
+      const config = { method: method, headers: headers };
+      if (body) config.body = JSON.stringify(body);
+
+      const response = await fetch(url, config);
+
+      // Log raw response status and content type for every call
+      console.log(`Raw response from ${url} - Status: ${response.status}, Content-Type: ${response.headers.get('Content-Type')}`);
+
+      if (response.status === 401) {
+          showToast('Phiên đăng nhập không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.', false);
+          removeToken();
+          // Đảm bảo bạn có trang /login.html hoặc đường dẫn đúng
+          window.location.href = '/login.html'; // Hoặc '/login' nếu PageController phục vụ
+          throw new Error('Unauthorized');
+      }
+      if (response.status === 403) {
+           showToast('Bạn không có quyền thực hiện hành động này.', false);
+           throw new Error('Forbidden');
+      }
+      return response; // Return the raw response for further processing
+  }
+
+
+  async function fetchUsers(page = 0) {
+      if (!userTableBody) return;
+      userTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px;">Đang tải dữ liệu khách hàng...</td></tr>`;
+      try {
+          // API của bạn là /list?page={pageNumber}, không có pageSize
+          const response = await makeApiCall(`${API_USER_URL}/list?page=${page}`);
+
+          // Xử lý response sau khi makeApiCall đã kiểm tra 401/403
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.indexOf("application/json") !== -1) {
+              const responseData = await response.json();
+              console.log("fetchUsers - Parsed JSON Response:", responseData);
+              if (response.ok && responseData.status === 200 && responseData.data) {
+                  renderUsers(responseData.data);
+                  currentUserPage = page;
+                  updateUserPaginationControls(responseData.data.length);
+              } else {
+                  showToast(`Lỗi tải khách hàng: ${responseData.message || 'Không có dữ liệu hoặc lỗi cấu trúc'}`, false);
+                  userTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px;">Không tải được dữ liệu.</td></tr>`;
+                  updateUserPaginationControls(0);
+              }
+          } else if (response.ok) { // OK response but not JSON (e.g. empty)
+              console.warn("fetchUsers - Response OK but not JSON.");
+              userTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px;">Không có dữ liệu hoặc phản hồi không đúng định dạng.</td></tr>`;
+              updateUserPaginationControls(0);
+          } else { // Not OK and not JSON (e.g. HTML error page)
+              const errorText = await response.text();
+              console.error("fetchUsers - Error response (not JSON):", errorText.substring(0,500));
+              showToast(`Lỗi server: ${response.statusText} (Code: ${response.status})`, false);
+              userTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px;">Lỗi server.</td></tr>`;
+              updateUserPaginationControls(0);
+          }
+      } catch (error) {
+          if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+              console.error('Lỗi khi tải danh sách khách hàng:', error);
+              showToast(`Lỗi kết nối khi tải khách hàng: ${error.message}`, false);
+              userTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px;">Lỗi kết nối. Vui lòng thử lại.</td></tr>`;
+              updateUserPaginationControls(0);
+          }
+      }
+  }
+
+  async function fetchUserById(id) {
+      try {
+          const response = await makeApiCall(`${API_USER_URL}/${id}`);
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.indexOf("application/json") !== -1) {
+              const responseData = await response.json();
+               console.log(`fetchUserById(${id}) - Parsed JSON Response:`, responseData);
+              if (response.ok && responseData.status === 200 && responseData.data) {
+                  return responseData.data;
+              } else {
+                  showToast(`Lỗi tải chi tiết người dùng: ${responseData.message || 'Không tìm thấy'}`, false);
+                  return null;
+              }
+          } else if (response.ok) {
+              console.warn(`fetchUserById(${id}) - Response OK but not JSON.`);
+              showToast('Phản hồi không đúng định dạng từ server khi lấy chi tiết người dùng.', false);
+              return null;
+          } else {
+               const errorText = await response.text();
+              console.error(`fetchUserById(${id}) - Error response (not JSON):`, errorText.substring(0,500));
+              showToast(`Lỗi server khi lấy chi tiết người dùng: ${response.statusText} (Code: ${response.status})`, false);
+              return null;
+          }
+      } catch (error) {
+           if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+              console.error(`Lỗi khi tải người dùng ID ${id}:`, error);
+              showToast(error.message || 'Lỗi khi tải chi tiết người dùng.', false);
+          }
+          return null;
+      }
+  }
+
+  // --- Render Functions ---
+  function renderUsers(users) {
+      if (!userTableBody) return;
+      userTableBody.innerHTML = '';
+      if (!users || users.length === 0) {
+          userTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px;">Không có khách hàng nào.</td></tr>`;
+          return;
+      }
+      users.forEach(user => {
+          const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+          const escapedUsername = user.userName ? user.userName.replace(/'/g, "\\'") : 'N/A';
+          const lockStatusText = user.isLock ? '<span class="status-locked">Đã Khóa</span>' : '<span class="status-active">Hoạt động</span>';
+          const lockButtonIcon = user.isLock ? 'fa-lock-open' : 'fa-lock';
+          const lockButtonTitle = user.isLock ? 'Mở khóa' : 'Khóa';
+          const lockButtonClass = user.isLock ? 'unlock-btn' : 'lock-btn';
+
+          const row = `
+              <tr>
+                  <td>${user.id}</td>
+                  <td>${user.userName || 'N/A'}</td>
+                  <td>${fullName || 'N/A'}</td>
+                  <td>${user.email || 'N/A'}</td>
+                  <td>${user.phone != null ? user.phone : 'N/A'}</td>
+                  <td style="text-align:center;">${lockStatusText}</td>
+                  <td class="action-buttons">
+                      <button onclick="openUserEditModal(${user.id})" class="edit-btn" title="Sửa">
+                          <i class="fas fa-edit"></i>
+                      </button>
+                      <button onclick="toggleUserLockStatus(${user.id}, ${user.isLock}, '${escapedUsername}')" class="${lockButtonClass}" title="${lockButtonTitle}">
+                          <i class="fas ${lockButtonIcon}"></i>
+                      </button>
+                      <button onclick="deleteUser(${user.id}, '${escapedUsername}')" class="delete-btn" title="Xóa">
+                          <i class="fas fa-trash-alt"></i>
+                      </button>
+                  </td>
+              </tr>
+          `;
+          userTableBody.insertAdjacentHTML('beforeend', row);
+      });
+  }
+
+  // --- Modal Handling ---
+  function openUserModal(isEditMode = false, user = null) {
+      if (!userForm || !userModalTitle || !userModal || !passwordGroup) {
+          console.error("User Modal elements not found!");
+          return;
+      }
+      userForm.reset();
+      if(userFormMessage) userFormMessage.textContent = '';
+      const usernameField = document.getElementById('username');
+
+      if (isEditMode && user) {
+          userModalTitle.textContent = 'Chỉnh Sửa Khách Hàng';
+          passwordGroup.style.display = 'none';
+          if (usernameField) {
+              usernameField.readOnly = true;
+              usernameField.style.backgroundColor = '#e9ecef';
+          }
+          document.getElementById('userId').value = user.id;
+          if (usernameField) usernameField.value = user.userName || '';
+          document.getElementById('firstName').value = user.firstName || '';
+          document.getElementById('lastName').value = user.lastName || '';
+          document.getElementById('email').value = user.email || '';
+          document.getElementById('phone').value = user.phone != null ? user.phone : '';
+      } else {
+          userModalTitle.textContent = 'Thêm Khách Hàng Mới';
+          passwordGroup.style.display = 'block';
+          if (usernameField) {
+              usernameField.readOnly = false;
+              usernameField.style.backgroundColor = 'white';
+          }
+          document.getElementById('userId').value = '';
+      }
+      userModal.style.display = 'block';
+  }
+
+  function closeUserModal() {
+      if (userModal) userModal.style.display = 'none';
+      if (userForm) userForm.reset();
+      const usernameField = document.getElementById('username');
+      if (usernameField) {
+           usernameField.readOnly = false;
+           usernameField.style.backgroundColor = 'white';
+      }
+  }
+
+  // --- Edit, Delete, Lock Actions ---
+  window.openUserEditModal = async (id) => {
+      console.log("Attempting to edit user with ID:", id);
+      const user = await fetchUserById(id);
+      if (user) {
+          openUserModal(true, user);
+      }
+  };
+
+  window.deleteUser = async (id, username) => {
+      if (confirm(`Bạn có chắc chắn muốn xóa khách hàng "${username}" (ID: ${id}) không?`)) {
+          try {
+              const response = await makeApiCall(`${API_USER_URL}/${id}`, 'DELETE');
+              // Check if response is truly JSON before parsing
+              const contentType = response.headers.get("content-type");
+              let responseData;
+              if (contentType && contentType.indexOf("application/json") !== -1) {
+                  responseData = await response.json();
+              } else {
+                  responseData = { message: await response.text(), status: response.status }; // Fallback
+              }
+
+              if (response.ok && responseData.status === 200) {
+                  showToast(`Đã xóa khách hàng "${username}" thành công!`, true);
+                  fetchUsers(currentUserPage);
+              } else {
+                   showToast(`Lỗi khi xóa khách hàng: ${responseData.message || response.statusText}`, false);
+              }
+          } catch (error) {
+               if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+                  console.error('Lỗi khi xóa khách hàng:', error);
+                  showToast('Lỗi kết nối khi xóa khách hàng.', false);
+              }
+          }
+      }
+  };
+
+  window.toggleUserLockStatus = async (userId, currentIsLock, username) => {
+      const action = currentIsLock ? "mở khóa" : "khóa";
+      if (confirm(`Bạn có chắc chắn muốn ${action} tài khoản "${username}" (ID: ${userId}) không?`)) {
+          try {
+              const response = await makeApiCall(`${API_USER_URL}/${userId}/toggle-lock`, 'PATCH');
+              const contentType = response.headers.get("content-type");
+              let responseData;
+              if (contentType && contentType.indexOf("application/json") !== -1) {
+                  responseData = await response.json();
+              } else {
+                  responseData = { message: await response.text(), status: response.status };
+              }
+
+              if (response.ok && responseData.status === 200) {
+                  showToast(`Đã ${action} tài khoản "${username}" thành công!`, true);
+                  fetchUsers(currentUserPage);
+              } else {
+                  showToast(`Lỗi khi ${action} tài khoản: ${responseData.message || response.statusText}`, false);
+              }
+          } catch (error) {
+               if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+                  console.error(`Lỗi khi ${action} tài khoản:`, error);
+                  showToast(`Lỗi kết nối khi ${action} tài khoản.`, false);
+              }
+          }
+      }
+  };
+
+
+  // --- Event Listeners and Initial Load ---
+  document.addEventListener('DOMContentLoaded', () => {
+      const token = getToken();
+      if (!token && !window.location.pathname.includes('login.html')) { // Adjust if your login page has a different name/path
+          console.warn("No access token found. Redirecting to login.");
+          // Đảm bảo bạn có trang /login.html hoặc đường dẫn đúng
+          // window.location.href = '/login.html'; // Hoặc '/login' nếu PageController phục vụ
+          // For now, just show a message and don't load data if not on login page
+          if (userTableBody) {
+               userTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px;">Vui lòng <a href="/login.html">đăng nhập</a> để xem dữ liệu.</td></tr>`;
+               updateUserPaginationControls(0);
+          }
+          // return; // Prevent further execution if no token and not on login page
+      }
+
+      const loggedUser = getLoggedInUser();
+      if (loggedInUserNameSpan && loggedUser && loggedUser.userName) {
+          loggedInUserNameSpan.textContent = loggedUser.userName;
+      }
+
+
+      const currentAddUserBtn = document.getElementById('addUserBtn');
+      const currentCloseUserModalBtn = document.getElementById('closeUserModalBtn');
+      const currentCancelUserModalBtn = document.getElementById('cancelUserModalBtn');
+      const currentUserForm = document.getElementById('userForm');
+      const currentPrevUserPageBtn = document.getElementById('prevUserPageButton');
+      const currentNextUserPageBtn = document.getElementById('nextUserPageButton');
+
+      if(currentAddUserBtn) currentAddUserBtn.addEventListener('click', (e) => { e.preventDefault(); openUserModal(); });
+      if(currentCloseUserModalBtn) currentCloseUserModalBtn.addEventListener('click', closeUserModal);
+      if(currentCancelUserModalBtn) currentCancelUserModalBtn.addEventListener('click', closeUserModal);
+      window.addEventListener('click', (event) => { if (event.target == userModal) closeUserModal(); });
+
+      if(currentUserForm) {
+          currentUserForm.addEventListener('submit', async (event) => {
+              event.preventDefault();
+              if(userFormMessage) userFormMessage.textContent = '';
+
+              const formData = new FormData(currentUserForm);
+              const id = formData.get('id');
+              const isEditMode = !!id;
+              let userDataPayload;
+              let url;
+              let method;
+
+              const phoneString = formData.get('phone');
+              let phoneNumber = null;
+              if (phoneString && phoneString.trim() !== "") {
+                  const parsedPhone = parseInt(phoneString.trim(), 10);
+                  if (!isNaN(parsedPhone)) phoneNumber = parsedPhone;
+                  else { if(userFormMessage) {userFormMessage.textContent = 'Số điện thoại không hợp lệ.';} return; }
+              }
+
+              if (isEditMode) {
+                  userDataPayload = {
+                      firstName: formData.get('firstName'),
+                      lastName: formData.get('lastName'),
+                      email: formData.get('email'),
+                      phone: phoneNumber
+                  };
+                  url = `${API_USER_URL}/${id}`;
+                  method = 'PATCH';
+              } else {
+                  userDataPayload = {
+                      username: formData.get('username'),
+                      firstName: formData.get('firstName'),
+                      lastName: formData.get('lastName'),
+                      email: formData.get('email'),
+                      password: formData.get('password'),
+                      phone: phoneNumber
+                  };
+                  url = API_USER_URL;
+                  method = 'POST';
+                  if (!userDataPayload.password && !isEditMode) {
+                       if(userFormMessage) { userFormMessage.textContent = 'Mật khẩu là bắt buộc khi tạo mới.';} return;
+                  }
+              }
+
+              if (!isEditMode && !userDataPayload.username?.trim()) {
+                   if(userFormMessage) { userFormMessage.textContent = 'Tên đăng nhập không được để trống.';} return;
+              }
+              if (!userDataPayload.firstName?.trim() || !userDataPayload.lastName?.trim()) {
+                   if(userFormMessage) { userFormMessage.textContent = 'Họ và Tên không được để trống.';} return;
+              }
+              if (!userDataPayload.email?.trim() || !/\S+@\S+\.\S+/.test(userDataPayload.email)) {
+                   if(userFormMessage) { userFormMessage.textContent = 'Email không hợp lệ.';} return;
+              }
+
+              console.log(`Sending ${method} request to ${url} with data:`, JSON.stringify(userDataPayload));
+              try {
+                  const response = await makeApiCall(url, method, userDataPayload);
+                  const contentType = response.headers.get("content-type");
+                  let responseData;
+                  if (contentType && contentType.indexOf("application/json") !== -1) {
+                      responseData = await response.json();
+                  } else {
+                      responseData = { message: await response.text(), status: response.status };
+                  }
+                  console.log("Form submit response:", responseData);
+
+                  if (response.ok && (responseData.status === 200 || responseData.status === 201)) {
+                      showToast(isEditMode ? 'Cập nhật khách hàng thành công!' : 'Thêm khách hàng thành công!', true);
+                      closeUserModal();
+                      fetchUsers(isEditMode ? currentUserPage : 0);
+                  } else {
+                      const errorText = `Lỗi: ${responseData.message || response.statusText || 'Không thể lưu thông tin.'}`;
+                      if(userFormMessage) { userFormMessage.textContent = errorText;}
+                      showToast(errorText, false);
+                  }
+              } catch (error) {
+                  if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+                      console.error('Lỗi khi lưu thông tin khách hàng:', error);
+                      const errorTextCatch = 'Lỗi kết nối hoặc xử lý. Vui lòng thử lại.';
+                      if(userFormMessage) { userFormMessage.textContent = errorTextCatch;}
+                      showToast(errorTextCatch, false);
+                  }
+              }
+          });
+      }
+
+      if(currentPrevUserPageBtn) currentPrevUserPageBtn.addEventListener('click', () => { if (currentUserPage > 0) fetchUsers(currentUserPage - 1); });
+      if(currentNextUserPageBtn) currentNextUserPageBtn.addEventListener('click', () => { if (!currentNextUserPageBtn.disabled) fetchUsers(currentUserPage + 1); });
+
+      if (logoutButton) {
+          logoutButton.addEventListener('click', (e) => {
+              e.preventDefault();
+              removeToken();
+              showToast('Bạn đã đăng xuất.', true);
+              setTimeout(() => { window.location.href = '/login.html'; }, 1500); // Đảm bảo có /login.html
+          });
+      }
+
+      // Initial Load
+      if (getToken()) { // Chỉ fetch users nếu có token
+          fetchUsers(currentUserPage);
+      } else {
+          // Nếu không có token và không phải trang login, có thể chuyển hướng hoặc hiển thị thông báo
+           if (!window.location.pathname.includes('login.html')) { // Giả sử trang login là login.html
+              console.log("Không có token, yêu cầu đăng nhập.");
+              if(userTableBody) userTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px;">Vui lòng <a href="/login.html">đăng nhập</a> để xem dữ liệu.</td></tr>`;
+              if(typeof updateUserPaginationControls === "function") updateUserPaginationControls(0);
+           }
+      }
+
+      // Sidebar toggle logic
+      const menuBtnSidebar = document.getElementById('menu-btn-sidebar');
+      const closeBtnSidebarElem = document.getElementById('close-btn-sidebar');
+      const sidebar = document.querySelector('aside');
+      if (menuBtnSidebar && sidebar) menuBtnSidebar.addEventListener('click', () => { sidebar.style.display = 'block'; });
+      if (closeBtnSidebarElem && sidebar) closeBtnSidebarElem.addEventListener('click', () => { sidebar.style.display = 'none'; });
+
+      const darkModeToggle = document.querySelector('.dark-mode');
+      if (darkModeToggle) {
+          darkModeToggle.addEventListener('click', () => {
+              document.body.classList.toggle('dark-theme-variables');
+              darkModeToggle.querySelector('span:nth-child(1)').classList.toggle('active');
+              darkModeToggle.querySelector('span:nth-child(2)').classList.toggle('active');
+          });
+      }
+  });
+</script>
+</body>
+</html>

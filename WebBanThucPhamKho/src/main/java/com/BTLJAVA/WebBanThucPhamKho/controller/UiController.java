@@ -13,7 +13,17 @@ public class UiController {
     }
     @GetMapping("/login")
     public String login() {
-        return "index";
+        return "login";
+
+    }
+    @GetMapping("/admin/manage-customer")
+    public String showCustomerManagementPage() {
+        return "Quanlykhachhang";
+
+    }
+    @GetMapping("/admin/dashboard")
+    public String showManagementPage() {
+        return "Dashboard";
 
     }
 

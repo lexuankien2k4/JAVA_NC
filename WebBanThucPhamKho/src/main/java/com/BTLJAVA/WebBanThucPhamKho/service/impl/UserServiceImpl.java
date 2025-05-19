@@ -117,4 +117,40 @@ public class UserServiceImpl implements UserService {
 
         return user;
     }
+     @Override
+ public UserResponse getUserResponseById(Integer id) {
+     User user = userRepository.findById(id)
+             .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
+     // Đảm bảo UserMapper map cả isLock
+     return userMapper.toDTO(user);
+ }
+     @Override
+ public UserResponse updateUserByAdmin(Integer id, UserUpdateRequest userUpdateRequest) {
+     User user = userRepository.findById(id)
+             .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
+
+     user.setFirstName(userUpdateRequest.getFirstName());
+     user.setLastName(userUpdateRequest.getLastName());
+     user.setEmail(userUpdateRequest.getEmail());
+     user.setPhone(userUpdateRequest.getPhone());
+
+//      Nếu UserUpdateRequest có isLock và bạn muốn cập nhật qua đây:
+      if (userUpdateRequest.getIsLock() != null) {
+          user.setIsLock(userUpdateRequest.getIsLock());
+      }
+
+     User savedUser = userRepository.save(user);
+     return userMapper.toDTO(savedUser);
+ }
+     @Override
+ public UserResponse toggleUserLockStatus(Integer id) {
+     User user = userRepository.findById(id)
+             .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
+     user.setIsLock(!user.getIsLock()); // Đảo ngược trạng thái khóa
+     User savedUser = userRepository.save(user);
+     // Đảm bảo UserMapper map cả isLock
+     return userMapper.toDTO(savedUser);
+ }
+
+
 }
