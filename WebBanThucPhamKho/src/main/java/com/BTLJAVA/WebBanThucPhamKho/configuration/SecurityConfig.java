@@ -31,6 +31,7 @@ public class SecurityConfig {
             "/",                     // Trang chủ (ví dụ: index.html)
             "/login",                // Trang hiển thị form đăng nhập (GET -> index.html)
             "/register",             // Trang hiển thị form đăng ký (GET -> index.html, nếu có)
+            "/home",
 
             // Authentication APIs (handled by AuthController)
             "/api/v1/auth/**",       // Bao gồm /api/v1/auth/login, /api/v1/auth/register
@@ -47,6 +48,7 @@ public class SecurityConfig {
             // Nếu bạn muốn tất cả các method của product API đều public ở đây, giữ nguyên như cũ.
             // Hoặc bạn có thể chỉ định HttpMethod.GET cho "/api/v1/product/**"
             "/api/v1/product/**",
+            "/api/v1/categories/**",
 
             // Admin UI (LƯU Ý: "/admin/**" sẽ cho phép tất cả các trang admin công khai)
             // Nếu bạn muốn bảo vệ các trang admin, hãy xóa dòng "/admin/**" khỏi đây

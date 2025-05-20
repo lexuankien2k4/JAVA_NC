@@ -26,6 +26,11 @@ public class UiController {
         return "Dashboard";
 
     }
+    @GetMapping("/home")
+    public String showHomePage() {
+        return "Trangchu";
+
+    }
 
 
 }
