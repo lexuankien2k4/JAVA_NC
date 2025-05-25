@@ -7,7 +7,7 @@ import com.BTLJAVA.WebBanThucPhamKho.dto.response.ProductResponse;
 import java.util.List;
 
 public interface ProductService {
-    List<ProductResponse> getProducts(Integer pageNumber, Integer size);
+    List<ProductResponse> getProducts(Integer pageNumber, Integer pageSize, String keyword);
 
     ProductResponse createProduct(ProductRequest productRequest);
 

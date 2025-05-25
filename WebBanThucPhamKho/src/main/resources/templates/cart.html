@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giỏ hàng của bạn - LANCHI MART</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <style>
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+    .header-banner { background-color: #e30019; }
+    .quantity-input { width: 60px; text-align: center; }
+    .cart-summary-card { position: sticky; top: 140px; /* Điều chỉnh dựa trên chiều cao header của bạn */ }
+    .toast { display: none; position: fixed; bottom: 20px; right: 20px; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 5px; padding: 16px; z-index: 1050; font-size: 17px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+    .toast.success { background-color: #4CAF50; }
+    .toast.error { background-color: #f44336; }
+    .table-header-group th { background-color: #f8f9fa; }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+<header class="bg-white shadow-md sticky top-0 z-50">
+  <div class="container mx-auto px-4">
+    <div class="flex flex-col md:flex-row justify-between items-center py-3">
+      <div class="flex items-center">
+        <a href="/" class="flex items-center text-2xl font-bold text-red-600">
+          <img src="https://lanchi.vn/wp-content/uploads/2023/04/logo-lanchi-mart.svg" alt="LANCHI MART Logo" class="h-10 mr-2">
+        </a>
+      </div>
+      <div class="w-full md:w-1/2 my-3 md:my-0 md:px-4">
+        <div class="relative">
+          <input type="search" id="searchInputHeader" placeholder="Tìm kiếm sản phẩm..." class="w-full bg-gray-100 border border-gray-300 rounded-full py-2.5 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-search text-gray-400"></i></div>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3 sm:space-x-4">
+        <div id="userAuthStatusHeader" class="text-sm flex items-center">
+          <a href="/login" class="text-gray-700 hover:text-red-600">Đăng nhập</a>
+        </div>
+        <a href="/cart" id="cartIconHeader" class="relative text-gray-700 hover:text-red-600">
+          <i class="fas fa-shopping-cart fa-lg"></i>
+          <span id="cartItemCountHeader" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">0</span>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="header-banner text-white text-center py-2 text-xs sm:text-sm font-semibold">
+    FREESHIP VỚI HOÁ ĐƠN TRÊN 300.000VNĐ ! <span class="mx-2 sm:mx-4 hidden md:inline">|</span> <span class="hidden md:inline">Hotline: 1900 066 698</span>
+  </div>
+</header>
+
+<div class="container mx-auto px-2 sm:px-4 mt-6 mb-8">
+  <nav class="text-sm text-gray-500 mb-4" aria-label="Breadcrumb">
+    <ol class="list-none p-0 inline-flex">
+      <li class="flex items-center"><a href="/" class="hover:text-red-600">Trang chủ</a><i class="fas fa-chevron-right fa-xs mx-2"></i></li>
+      <li><span class="text-gray-700 font-semibold">Giỏ hàng</span></li>
+    </ol>
+  </nav>
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">Giỏ Hàng Của Bạn</h1>
+
+  <div id="cartLoadingMessage" class="text-center py-10 text-gray-500">
+    <i class="fas fa-spinner fa-spin fa-2x"></i>
+    <p class="mt-2">Đang tải giỏ hàng...</p>
+  </div>
+
+  <div id="cartContent" class="hidden"> <div class="flex flex-col lg:flex-row gap-6">
+    <div class="w-full lg:w-2/3 bg-white p-0 sm:p-0 rounded-lg shadow-lg overflow-hidden">
+      <table class="w-full">
+        <thead class="table-header-group">
+        <tr class="text-left text-xs text-gray-600 uppercase tracking-wider">
+          <th class="p-3 font-semibold">Sản phẩm</th>
+          <th class="p-3 font-semibold">Đơn giá</th>
+          <th class="p-3 font-semibold text-center">Số lượng</th>
+          <th class="p-3 font-semibold text-right">Thành tiền</th>
+          <th class="p-3 font-semibold text-center">Xóa</th>
+        </tr>
+        </thead>
+        <tbody id="cartItemsContainer" class="divide-y divide-gray-200">
+        </tbody>
+      </table>
+      <div id="emptyCartMessage" class="hidden text-center py-10 px-4">
+        <i class="fas fa-shopping-cart fa-3x text-gray-400 mb-3"></i>
+        <p class="text-gray-600 text-lg">Giỏ hàng của bạn đang trống.</p>
+        <a href="/" class="mt-4 inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-6 rounded-md transition-colors">
+          Tiếp tục mua sắm
+        </a>
+      </div>
+    </div>
+
+    <div class="w-full lg:w-1/3">
+      <div class="cart-summary-card bg-white p-4 sm:p-6 rounded-lg shadow-lg">
+        <h2 class="text-xl font-semibold mb-4 border-b pb-3">Tóm Tắt Đơn Hàng</h2>
+        <div class="space-y-3 text-sm mb-4">
+          <div class="flex justify-between">
+            <span>Tổng số lượng:</span>
+            <span id="summaryTotalQuantity" class="font-semibold">0</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Tạm tính:</span>
+            <span id="summarySubtotal" class="font-semibold">0 ₫</span>
+          </div>
+          <div class="flex justify-between text-gray-500">
+            <span>Phí vận chuyển:</span>
+            <span>Miễn phí</span> </div>
+        </div>
+        <div class="border-t mt-4 pt-4">
+          <div class="flex justify-between font-bold text-lg">
+            <span>Tổng Cộng:</span>
+            <span id="summaryGrandTotal" class="text-red-600">0 ₫</span>
+          </div>
+        </div>
+        <button id="checkoutButton" class="mt-6 w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          TIẾN HÀNH THANH TOÁN
+        </button>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<footer class="bg-gray-800 text-white py-8 mt-10 text-sm">
+</footer>
+
+<div id="toast" class="toast">
+  <span id="toastMessage"></span>
+</div>
+
+<script>
+  const API_CART_URL = '/api/v1/cart';
+  // DOM Elements
+  let cartItemsContainerEl, emptyCartMessageEl, cartContentEl, cartLoadingMessageEl,
+      summaryTotalQuantityEl, summarySubtotalEl, summaryGrandTotalEl,
+      checkoutButtonEl, cartItemCountHeaderEl, userAuthStatusEl, toast, toastMessage;
+
+  // --- Quản lý Token & Guest Cart ID ---
+  function getToken() { return localStorage.getItem('accessToken'); }
+  function getGuestCartId() { return localStorage.getItem('guestCartId'); }
+  function removeToken() { /* ... */ } // Giữ nguyên từ các file trước
+  function getLoggedInUser() { /* ... */ } // Giữ nguyên
+  function removeGuestCartId() { localStorage.removeItem('guestCartId'); }
+
+  // --- Hàm Tiện ích ---
+  function showToast(message, isSuccess = true) { /* ... (Giữ nguyên) ... */ }
+  function formatPrice(price) { /* ... (Giữ nguyên) ... */ }
+
+  // --- Hàm Gọi API Chung ---
+  async function makeApiCall(url, method = 'GET', body = null, requiresAuthIfTokenExists = false) {
+      const headers = { 'Content-Type': 'application/json' };
+      const token = getToken();
+
+      // Nếu API yêu cầu xác thực NẾU CÓ TOKEN, hoặc nếu là API giỏ hàng và có token
+      if ((token && requiresAuthIfTokenExists) || (token && url.includes(API_CART_URL))) {
+          headers['Authorization'] = `Bearer ${token}`;
+      }
+      // Không cần else để trả về lỗi NO_TOKEN ở đây cho GET /cart,
+      // vì nó có thể hoạt động với guestCartId.
+      // Lỗi 401 sẽ do backend trả về nếu token được gửi nhưng không hợp lệ.
+
+      const config = { method: method, headers: headers };
+      if (body && (method === 'POST' || method === 'PATCH' || method === 'PUT' || method === 'DELETE')) {
+          config.body = JSON.stringify(body);
+      }
+      console.log(`CartPage - Calling API: ${method} ${url}`, config.body ? `with body: ${config.body.substring(0,100)}...` : '');
+      const response = await fetch(url, config);
+      console.log(`CartPage - Raw response from ${url} - Status: ${response.status}`);
+
+      if (response.status === 401 && token) {
+          showToast('Phiên đăng nhập không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.', false);
+          removeToken(); removeGuestCartId(); updateUserAuthStatus();
+          // Chuyển hướng về login, và lưu lại trang hiện tại để quay lại
+          localStorage.setItem('redirectAfterLogin', window.location.pathname);
+          window.location.href = '/login'; // Sử dụng đường dẫn controller
+          throw new Error('Unauthorized');
+      }
+      if (response.status === 403 && token) {
+           showToast('Bạn không có quyền thực hiện hành động này.', false);
+           throw new Error('Forbidden');
+      }
+      return response;
+  }
+
+  // --- Chức năng Giỏ hàng ---
+  async function fetchCart() {
+      if (cartLoadingMessageEl) cartLoadingMessageEl.style.display = 'block';
+      if (cartContentEl) cartContentEl.style.display = 'none';
+      if (emptyCartMessageEl) emptyCartMessageEl.style.display = 'none';
+
+      const token = getToken();
+      const guestId = getGuestCartId();
+      let url = API_CART_URL;
+      // API GET /cart của bạn không yêu cầu xác thực bắt buộc,
+      // backend sẽ tự xử lý dựa trên token (nếu có) hoặc guestId.
+      let requiresAuth = false; // Không bắt buộc auth cho GET /cart
+
+      if (token) {
+          // Nếu có token, makeApiCall sẽ tự động gửi. Backend sẽ dùng userId.
+      } else if (guestId) {
+          url += `?guestCartId=${guestId}`; // Gửi guestId nếu không có token
+      } else {
+          console.log("CartPage: No token and no guestCartId, cart is considered empty.");
+          renderCart(null); // Hiển thị giỏ hàng trống
+          if (cartLoadingMessageEl) cartLoadingMessageEl.style.display = 'none';
+          if (cartContentEl) cartContentEl.style.display = 'block';
+          return;
+      }
+
+      try {
+          const response = await makeApiCall(url, 'GET', null, requiresAuth);
+
+          if (!response.ok) {
+              let errorMsg = `Lỗi tải giỏ hàng (${response.status})`;
+              try {
+                  if (response.headers.get("content-type")?.includes("application/json")) {
+                       const errorData = await response.json(); errorMsg = errorData.message || errorMsg;
+                  } else { errorMsg = await response.text(); }
+              } catch (e) {}
+              throw new Error(errorMsg);
+          }
+          const responseData = await response.json(); // ResponseData<CartResponse>
+
+          if (responseData.status === 200 && responseData.data) {
+              renderCart(responseData.data); // responseData.data là CartResponse
+          } else {
+              throw new Error(responseData.message || "Không thể tải dữ liệu giỏ hàng.");
+          }
+      } catch (error) {
+          if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+              console.error("Lỗi khi tải giỏ hàng:", error);
+              showToast(`Lỗi tải giỏ hàng: ${error.message}`, false);
+              renderCart(null);
+          }
+      } finally {
+          if (cartLoadingMessageEl) cartLoadingMessageEl.style.display = 'none';
+          if (cartContentEl) cartContentEl.style.display = 'block';
+      }
+  }
+
+  function renderCart(cartData) {
+      if (!cartItemsContainerEl || !summaryTotalQuantityEl || !summarySubtotalEl || !summaryGrandTotalEl || !emptyCartMessageEl || !cartItemCountHeaderEl) {
+          console.error("Một hoặc nhiều phần tử DOM của giỏ hàng không tìm thấy.");
+          return;
+      }
+
+      if (!cartData || !cartData.items || cartData.items.length === 0) {
+          cartItemsContainerEl.innerHTML = '';
+          emptyCartMessageEl.style.display = 'block';
+          summaryTotalQuantityEl.textContent = '0';
+          summarySubtotalEl.textContent = '0 ₫';
+          summaryGrandTotalEl.textContent = '0 ₫';
+          cartItemCountHeaderEl.textContent = '0';
+          if (checkoutButtonEl) checkoutButtonEl.disabled = true;
+          return;
+      }
+
+      emptyCartMessageEl.style.display = 'none';
+      cartItemsContainerEl.innerHTML = '';
+      cartData.items.forEach(item => {
+          const escapedProductName = item.productName ? item.productName.replace(/'/g, "\\'") : 'Sản phẩm';
+          const itemHtml = `
+              <tr class="cart-item border-b" data-cart-item-id="${item.id}">
+                  <td class="p-3 flex items-center">
+                      <img src="${item.productImageUrl || 'https://placehold.co/60x60/EFEFEF/AAAAAA&text=No+Img'}" alt="${escapedProductName}" class="w-16 h-16 object-cover rounded mr-3">
+                      <div>
+                          <h3 class="font-semibold text-sm md:text-md">${item.productName || 'N/A'}</h3>
+                          <p class="text-xs text-gray-500">ID SP: ${item.productId}</p>
+                      </div>
+                  </td>
+                  <td class="p-3 text-sm">${formatPrice(item.unitPrice)}</td>
+                  <td class="p-3 text-center">
+                      <div class="flex items-center justify-center">
+                          <button onclick="updateQuantity(${item.id}, ${item.quantity - 1})" class="px-2 py-1 border rounded-l bg-gray-200 hover:bg-gray-300 text-sm">-</button>
+                          <input type="number" value="${item.quantity}" min="0" class="quantity-input border-t border-b px-1 py-1 text-sm focus:outline-none w-12 text-center" onchange="handleQuantityChange(${item.id}, this.value)">
+                          <button onclick="updateQuantity(${item.id}, ${item.quantity + 1})" class="px-2 py-1 border rounded-r bg-gray-200 hover:bg-gray-300 text-sm">+</button>
+                      </div>
+                  </td>
+                  <td class="p-3 text-sm font-semibold text-right">${formatPrice(item.lineTotal)}</td>
+                  <td class="p-3 text-center">
+                      <button onclick="removeItem(${item.id}, '${escapedProductName}')" class="text-red-500 hover:text-red-700" title="Xóa sản phẩm">
+                          <i class="fas fa-trash-alt"></i>
+                      </button>
+                  </td>
+              </tr>
+          `;
+          cartItemsContainerEl.insertAdjacentHTML('beforeend', itemHtml);
+      });
+
+      summaryTotalQuantityEl.textContent = cartData.totalQuantity || 0;
+      summarySubtotalEl.textContent = formatPrice(cartData.subtotalPrice);
+      summaryGrandTotalEl.textContent = formatPrice(cartData.subtotalPrice);
+      cartItemCountHeaderEl.textContent = cartData.totalQuantity || 0;
+      if (checkoutButtonEl) checkoutButtonEl.disabled = (cartData.totalQuantity || 0) === 0;
+  }
+  // Để có thể gọi từ onchange
+  window.handleQuantityChange = (cartItemId, newValue) => {
+      updateQuantity(cartItemId, newValue);
+  };
+
+  window.updateQuantity = async (cartItemId, newQuantity) => {
+      newQuantity = parseInt(newQuantity);
+      if (isNaN(newQuantity) || newQuantity < 0) {
+          showToast("Số lượng không hợp lệ.", false);
+          fetchCart(); // Tải lại để reset về giá trị cũ nếu input không hợp lệ
+          return;
+      }
+      console.log(`Updating cart item ID ${cartItemId} to quantity ${newQuantity}`);
+
+      const token = getToken();
+      const guestId = getGuestCartId();
+      let url = `${API_CART_URL}/item/${cartItemId}`;
+      let requiresAuth = false;
+
+      if (token) {
+          requiresAuth = true;
+      } else if (guestId) {
+          url += `?guestCartId=${guestId}`;
+      } else {
+          showToast("Không tìm thấy thông tin giỏ hàng.", false); return;
+      }
+
+      try {
+          const response = await makeApiCall(url, 'PATCH', { quantity: newQuantity }, requiresAuth);
+          if (response.error === 'NO_TOKEN' && requiresAuth) return;
+
+          if (!response.ok) {
+              const errorData = await response.json().catch(async () => ({message: await response.text()}));
+              throw new Error(errorData.message || `Lỗi cập nhật số lượng (Status: ${response.status})`);
+          }
+          const responseData = await response.json();
+          if (responseData.status === 200 && responseData.data) {
+              showToast("Cập nhật giỏ hàng thành công!", true);
+              renderCart(responseData.data);
+          } else {
+              throw new Error(responseData.message || "Lỗi cập nhật số lượng từ server.");
+          }
+      } catch (error) {
+          if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+              console.error("Lỗi cập nhật số lượng:", error);
+              showToast(`Lỗi cập nhật số lượng: ${error.message}`, false);
+              fetchCart();
+          }
+      }
+  };
+
+  window.removeItem = async (cartItemId, productName) => {
+      if (!confirm(`Bạn có chắc muốn xóa "${productName}" khỏi giỏ hàng?`)) return;
+      console.log(`Removing cart item ID ${cartItemId}`);
+
+      const token = getToken();
+      const guestId = getGuestCartId();
+      let url = `${API_CART_URL}/item/${cartItemId}`;
+      let requiresAuth = false;
+
+      if (token) {
+          requiresAuth = true;
+      } else if (guestId) {
+          url += `?guestCartId=${guestId}`;
+      } else {
+          showToast("Không tìm thấy thông tin giỏ hàng.", false); return;
+      }
+
+      try {
+          const response = await makeApiCall(url, 'DELETE', null, requiresAuth);
+          if (response.error === 'NO_TOKEN' && requiresAuth) return;
+
+          if (!response.ok) {
+              const errorData = await response.json().catch(async () => ({message: await response.text()}));
+              throw new Error(errorData.message || `Lỗi xóa sản phẩm (Status: ${response.status})`);
+          }
+          const responseData = await response.json();
+          if (responseData.status === 200 && responseData.data) {
+              showToast(`Đã xóa "${productName}" khỏi giỏ hàng!`, true);
+              renderCart(responseData.data);
+          } else {
+              throw new Error(responseData.message || "Lỗi xóa sản phẩm từ server.");
+          }
+      } catch (error) {
+          if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+              console.error("Lỗi xóa sản phẩm:", error);
+              showToast(`Lỗi xóa sản phẩm: ${error.message}`, false);
+              fetchCart();
+          }
+      }
+  };
+
+  // --- Cập nhật trạng thái đăng nhập trên UI ---
+  function updateUserAuthStatus() {
+      const user = getLoggedInUser();
+      if (userAuthStatusEl) {
+          if (user && (user.userName || user.firstName)) {
+              const displayName = user.userName || `${user.firstName || ''} ${user.lastName || ''}`.trim();
+              userAuthStatusEl.innerHTML = `
+                  <span class="text-gray-700 mr-2">Chào, ${displayName}!</span>
+                  <a href="#" id="logoutLinkInHeaderCartPage" class="text-red-600 hover:underline font-semibold">Đăng xuất</a>
+              `;
+              const logoutLink = document.getElementById('logoutLinkInHeaderCartPage');
+              if (logoutLink && !logoutLink.hasLogoutListener) {
+                  logoutLink.addEventListener('click', (e) => {
+                      e.preventDefault(); removeToken(); removeGuestCartId();
+                      showToast('Bạn đã đăng xuất.', true);
+                      updateUserAuthStatus(); // Cập nhật lại UI
+                      fetchCart(); // Tải lại giỏ hàng (sẽ là giỏ trống nếu không có guestCartId mới)
+                  });
+                  logoutLink.hasLogoutListener = true;
+              }
+          } else {
+              userAuthStatusEl.innerHTML = '<a href="/login" class="text-gray-700 hover:text-red-600 font-semibold">Đăng nhập</a>';
+          }
+      }
+      // Gọi ở đây để đảm bảo số lượng giỏ hàng trên header được cập nhật ngay khi trạng thái auth thay đổi
+      // fetchCartDetailsAndUpdateCount(); // fetchCart sẽ làm điều này rồi
+  }
+
+  // --- Khởi tạo Trang Giỏ hàng ---
+  document.addEventListener('DOMContentLoaded', () => {
+      // Gán DOM elements
+      cartItemsContainerEl = document.getElementById('cartItemsContainer');
+      emptyCartMessageEl = document.getElementById('emptyCartMessage');
+      cartContentEl = document.getElementById('cartContent');
+      cartLoadingMessageEl = document.getElementById('cartLoadingMessage');
+      summaryTotalQuantityEl = document.getElementById('summaryTotalQuantity');
+      summarySubtotalEl = document.getElementById('summarySubtotal');
+      summaryGrandTotalEl = document.getElementById('summaryGrandTotal');
+      checkoutButtonEl = document.getElementById('checkoutButton');
+      cartItemCountHeaderEl = document.getElementById('cartItemCountHeader');
+      userAuthStatusEl = document.getElementById('userAuthStatusHeader');
+      toast = document.getElementById('toast');
+      toastMessage = document.getElementById('toastMessage');
+
+      updateUserAuthStatus(); // Cập nhật UI đăng nhập và tải số lượng giỏ hàng ban đầu
+      fetchCart(); // Tải và hiển thị giỏ hàng
+
+      if (checkoutButtonEl) {
+          checkoutButtonEl.addEventListener('click', () => {
+              const token = getToken();
+              if (!token) {
+                  showToast("Vui lòng đăng nhập để tiến hành thanh toán.", false);
+                  localStorage.setItem('redirectAfterLogin', '/cart'); // Lưu lại trang giỏ hàng (đường dẫn controller)
+                  setTimeout(() => { window.location.href = '/login'; }, 1000); // Chuyển đến trang login (đường dẫn controller)
+              } else {
+                  console.log("Tiến hành thanh toán...");
+                  window.location.href = '/checkout'; // Trang thanh toán của bạn (cần controller cho /checkout)
+              }
+          });
+      }
+      // Cập nhật số lượng giỏ hàng trên header (nếu có) từ trang sản phẩm
+      const headerCartCount = localStorage.getItem('headerCartCount');
+      if (cartItemCountHeaderEl && headerCartCount) {
+          cartItemCountHeaderEl.textContent = headerCartCount;
+          localStorage.removeItem('headerCartCount'); // Xóa sau khi dùng
+      }
+  });
+</script>
+</body>
+</html>

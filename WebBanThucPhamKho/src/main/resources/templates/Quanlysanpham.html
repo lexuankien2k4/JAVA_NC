@@ -5,181 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link rel="stylesheet" href="/css/qlsp.css">
-    <title>Quản trị viên - Quản lý Sản phẩm</title>
+    <link rel="stylesheet" href="/css/qlsp.css"> <title>Quản trị viên - Quản lý Sản phẩm</title>
     <style>
         /* CSS for Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.5);
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 25px;
-            border: 1px solid #888;
-            width: 90%;
-            max-width: 600px;
-            border-radius: 8px;
-            position: relative;
-            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
-        }
-
-        .close-button {
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            position: absolute;
-            top: 10px;
-            right: 20px;
-        }
-
-        .close-button:hover,
-        .close-button:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        .modal-content label {
-            display: block;
-            margin-top: 10px;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        .modal-content input[type="text"],
-        .modal-content input[type="number"],
-        .modal-content input[type="url"],
-        .modal-content input[type="date"] {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        .modal-content button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .modal-content .save-btn {
-            background-color: #4CAF50; /* Green */
-            color: white;
-        }
-        .modal-content .save-btn:hover {
-            background-color: #45a049;
-        }
-
-        .modal-content .cancel-btn {
-            background-color: #f44336; /* Red */
-            color: white;
-            margin-left: 10px;
-        }
-         .modal-content .cancel-btn:hover {
-            background-color: #da190b;
-        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 25px; border: 1px solid #888; width: 90%; max-width: 600px; border-radius: 8px; position: relative; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19); }
+        .close-button { color: #aaa; font-size: 28px; font-weight: bold; position: absolute; top: 10px; right: 20px; cursor: pointer; }
+        .close-button:hover, .close-button:focus { color: black; text-decoration: none; }
+        .modal-content label { display: block; margin-top: 10px; margin-bottom: 5px; font-weight: bold; }
+        .modal-content input[type="text"], .modal-content input[type="number"], .modal-content input[type="url"], .modal-content input[type="date"] { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .modal-content button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .modal-content .save-btn { background-color: #4CAF50; color: white; }
+        .modal-content .save-btn:hover { background-color: #45a049; }
+        .modal-content .cancel-btn { background-color: #f44336; color: white; margin-left: 10px; }
+        .modal-content .cancel-btn:hover { background-color: #da190b; }
 
         /* Toast Notification Styling */
-        .toast {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            min-width: 250px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 5px;
-            padding: 16px;
-            z-index: 1001;
-            font-size: 17px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
-        .toast.success {
-            background-color: #4CAF50;
-        }
-        .toast.error {
-            background-color: #f44336;
-        }
+        .toast { display: none; position: fixed; bottom: 20px; right: 20px; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 5px; padding: 16px; z-index: 1050; font-size: 17px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .toast.success { background-color: #4CAF50; }
+        .toast.error { background-color: #f44336; }
 
         /* Table Styling */
-        #productTable {
-            table-layout: fixed;
-            width: 100%;
-            border-collapse: collapse;
-        }
-        #productTable td, #productTable th {
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            padding: 10px 8px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-        #productTable th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-        #productTable img {
-            max-width: 60px;
-            height: auto;
-            border-radius: 4px;
-            display: block;
-            margin: auto;
-        }
-        .action-buttons button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 5px;
-            margin: 0 2px;
-            font-size: 1.1em;
-        }
-        .action-buttons .edit-btn { color: #ffa500; }
-        .action-buttons .delete-btn { color: #f44336; }
+        #productTable { table-layout: fixed; width: 100%; border-collapse: collapse; margin-top: 15px; }
+        #productTable td, #productTable th { word-wrap: break-word; overflow-wrap: break-word; padding: 10px 8px; border: 1px solid #ddd; text-align: left; }
+        #productTable th { background-color: #f2f2f2; font-weight: bold; }
+        #productTable img { max-width: 60px; height: auto; border-radius: 4px; display: block; margin: auto; }
+        .action-buttons button { background: none; border: none; cursor: pointer; padding: 5px; margin: 0 2px; font-size: 1.1em; }
+        .action-buttons .edit-btn { color: #000000; }
+        .action-buttons .delete-btn { color: #000000; }
         .action-buttons { text-align: center; }
 
-
         /* Pagination Styling */
-        .pagination-controls {
-            padding: 15px 0;
-            text-align: center;
+        .pagination-controls { padding: 15px 0; text-align: center; }
+        .pagination-controls button { padding: 8px 12px; margin: 0 5px; border: 1px solid #ddd; background-color: #f9f9f9; cursor: pointer; border-radius: 4px; color: #000000; }
+        .pagination-controls button:hover:not(:disabled) { background-color: #e9e9e9; }
+        .pagination-controls button:disabled { background-color: #eee; color: #000000; opacity:0.6; cursor: not-allowed; }
+        .pagination-controls span { padding: 8px 12px; margin: 0 5px; }
+
+        /* Search Bar Styling */
+        .search-container { margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center; }
+        .search-container input[type="search"] {
+            flex-grow: 1; padding: 0.6rem 1rem; border: 1px solid #ccc;
+            border-radius: 4px; font-size: 0.9rem;
         }
-        .pagination-controls button {
-            padding: 8px 12px;
-            margin: 0 5px;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
-            cursor: pointer;
-            border-radius: 4px;
-            /* THÊM DÒNG SAU ĐỂ ĐỔI MÀU CHỮ NÚT PHÂN TRANG */
-            color: #000000; /* Màu đen cho chữ */
+        .search-container button {
+            padding: 0.6rem 1rem; background-color: #007bff; color: white;
+            border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;
         }
-        .pagination-controls button:hover:not(:disabled) {
-            background-color: #e9e9e9;
-        }
-        .pagination-controls button:disabled {
-            background-color: #eee;
-            color: #000000; /* Chữ màu xám khi bị vô hiệu hóa */
-            cursor: not-allowed;
-        }
-        .pagination-controls span {
-            padding: 8px 12px;
-            margin: 0 5px;
-        }
+        .search-container button:hover { background-color: #0056b3; }
     </style>
 </head>
 <body>
@@ -190,7 +63,7 @@
                 <img src="https://cdn-001.haui.edu.vn//img/logo-haui-size.png" alt="Logo HAUI">
                 <h2>NHÓM 17</h2>
             </div>
-            <div class="close" id="close-btn">
+            <div class="close" id="close-btn-sidebar">
                 <span class="material-icons-sharp">close</span>
             </div>
         </div>
@@ -219,7 +92,7 @@
                 <span class="material-icons-sharp">inventory_2</span>
                 <h3>Quản lý cung ứng</h3>
             </a>
-            <a href="/admin/manage-customer">
+            <a href="/admin/manage-customer" >
                 <span class="material-icons-sharp">people</span>
                 <h3>Khách hàng</h3>
             </a>
@@ -244,9 +117,10 @@
 
     <main>
         <div id="dashboard-content" class="active">
-            <div class="main-nemu"> <h1>QUẢN LÝ SẢN PHẨM</h1>
+            <div class="main-nemu">
+                <h1>QUẢN LÝ SẢN PHẨM</h1>
                 <div class="nav">
-                    <button id="menu-btn">
+                    <button id="menu-btn-sidebar">
                         <span class="material-icons-sharp">menu</span>
                     </button>
                     <div class="dark-mode">
@@ -255,12 +129,10 @@
                     </div>
                     <div class="profile">
                         <div class="info">
-                            <p>Hey, <b id="name-id">Reza</b></p>
-                            <small class="text-muted" id="office">Admin</small>
+                            <p>Hey, <b id="name-id">Admin</b></p> <small class="text-muted" id="office">Quản trị viên</small>
                         </div>
                         <div class="profile-photo">
-                            <a href="#"> <img src="https://placehold.co/40x40/EFEFEF/AAAAAA&text=AVT" alt="Ảnh đại diện">
-                            </a>
+                            <a href="#"> <img src="https://placehold.co/40x40/EFEFEF/AAAAAA&text=AVT" alt="Ảnh đại diện"></a>
                         </div>
                     </div>
                 </div>
@@ -269,20 +141,24 @@
             <div class="dashboard">
                 <div class="student">
                     <div class="student-controller">
-                        <div class="controller-top">
-                            <div class="top-right">
-                                <button id="addProductBtn" class="add-button-table" style="background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-right: 10px; border: none; cursor:pointer;">
-                                    <i class="fas fa-plus mr-2"></i>Thêm Sản Phẩm Mới
-                                </button>
+                        <div class="controller-top" style="justify-content: space-between; display: flex; align-items: center;">
+                            <button id="addProductBtn" class="add-button-table" style="background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; border: none; cursor:pointer;">
+                                <i class="fas fa-plus mr-2"></i>Thêm Sản Phẩm Mới
+                            </button>
+                            <div class="top-right" style="display: flex; gap: 0.5rem;">
                                 <button class="export"><i class="fas fa-file-excel"></i>Export Excel</button>
                                 <button class="import"><i class="fas fa-file-import"></i>Import Excel</button>
                             </div>
                         </div>
                     </div>
 
+                    <div class="search-container mt-4 mb-4">
+                        <input type="search" id="productSearchInput" placeholder="Nhập tên sản phẩm để tìm kiếm..." class="flex-grow">
+                        <button id="productSearchButton"><i class="fas fa-search"></i> Tìm</button>
+                    </div>
+
                     <div class="table-container">
                         <h2>Danh Sách Sản Phẩm</h2>
-                        <div id="messageDisplayGlobal" class="message-area hidden" style="padding: 10px; margin: 10px 0; border-radius: 5px; text-align: center;"></div>
                         <table id="productTable">
                             <thead>
                             <tr>
@@ -319,42 +195,17 @@
         <h2 id="modalTitle" style="text-align: center; margin-bottom: 20px; font-size: 1.5em;">Thêm Sản Phẩm Mới</h2>
         <form id="productForm">
             <input type="hidden" id="productId" name="id">
-            <div>
-                <label for="name">Tên Sản Phẩm:</label>
-                <input type="text" id="name" name="name" required>
-            </div>
-            <div>
-                <label for="categoryId">ID Danh Mục:</label>
-                <input type="number" id="categoryId" name="categoryId" required>
-                <small style="font-size: 0.8em; color: #666;">Lưu ý: Nhập ID của danh mục. (Cải tiến: dùng dropdown)</small>
-            </div>
-            <div>
-                <label for="imageUrl">URL Hình Ảnh:</label>
-                <input type="url" id="imageUrl" name="imageUrl">
-            </div>
+            <div><label for="name">Tên Sản Phẩm:</label><input type="text" id="name" name="name" required></div>
+            <div><label for="categoryId">ID Danh Mục:</label><input type="number" id="categoryId" name="categoryId" required><small style="font-size: 0.8em; color: #666;">Lưu ý: Nhập ID của danh mục.</small></div>
+            <div><label for="imageUrl">URL Hình Ảnh:</label><input type="url" id="imageUrl" name="imageUrl"></div>
             <div style="display: flex; gap: 20px;">
-                <div style="flex: 1;">
-                    <label for="price">Giá:</label>
-                    <input type="number" id="price" name="price" required min="0">
-                </div>
-                <div style="flex: 1;">
-                    <label for="stockQuantity">Số Lượng Tồn Kho:</label>
-                    <input type="number" id="stockQuantity" name="stockQuantity" required min="0">
-                </div>
+                <div style="flex: 1;"><label for="price">Giá:</label><input type="number" id="price" name="price" required min="0"></div>
+                <div style="flex: 1;"><label for="stockQuantity">Số Lượng Tồn Kho:</label><input type="number" id="stockQuantity" name="stockQuantity" required min="0"></div>
             </div>
-            <div>
-                <label for="soldQuantity">Số Lượng Đã Bán:</label>
-                <input type="number" id="soldQuantity" name="soldQuantity" required min="0" value="0">
-            </div>
+            <div><label for="soldQuantity">Số Lượng Đã Bán:</label><input type="number" id="soldQuantity" name="soldQuantity" required min="0" value="0"></div>
             <div style="display: flex; gap: 20px;">
-                <div style="flex: 1;">
-                    <label for="manufactureDate">Ngày Sản Xuất:</label>
-                    <input type="date" id="manufactureDate" name="manufactureDate">
-                </div>
-                <div style="flex: 1;">
-                    <label for="expiryDate">Hạn Sử Dụng:</label>
-                    <input type="date" id="expiryDate" name="expiryDate">
-                </div>
+                <div style="flex: 1;"><label for="manufactureDate">Ngày Sản Xuất:</label><input type="date" id="manufactureDate" name="manufactureDate"></div>
+                <div style="flex: 1;"><label for="expiryDate">Hạn Sử Dụng:</label><input type="date" id="expiryDate" name="expiryDate"></div>
             </div>
             <div style="text-align: right; margin-top: 20px;">
                 <button type="button" id="cancelModalBtn" class="cancel-btn">Hủy</button>
@@ -371,131 +222,169 @@
 
 <script>
     // API Base URL
-    const API_BASE_URL = '/api/v1/product';
+    const API_PRODUCT_URL = '/api/v1/product';
 
     // DOM Elements
-    const productTableBody = document.getElementById('productTableBody');
-    const addProductBtn = document.getElementById('addProductBtn');
-    const productModal = document.getElementById('productModal');
-    const closeModalBtn = document.getElementById('closeModalBtn');
-    const cancelModalBtn = document.getElementById('cancelModalBtn');
-    const productForm = document.getElementById('productForm');
-    const modalTitle = document.getElementById('modalTitle');
-    const formMessage = document.getElementById('formMessage');
-    const toast = document.getElementById('toast');
-    const toastMessage = document.getElementById('toastMessage');
+    let productTableBody, addProductBtn, productModal, closeModalBtn, cancelModalBtn,
+        productForm, modalTitle, formMessage, toast, toastMessage,
+        prevPageBtn, nextPageBtn, currentPageSpan,
+        loggedInUserNameSpan, logoutButton,
+        productSearchInput, productSearchButton;
 
-    // Pagination Elements
-    const prevPageBtn = document.getElementById('prevPageButton');
-    const nextPageBtn = document.getElementById('nextPageButton');
-    const currentPageSpan = document.getElementById('currentPageDisplay');
-    let currentPage = 0; // API uses 0-based indexing
+    // Pagination and Search state
+    let currentPage = 0;
     const pageSize = 10;
+    let currentSearchTerm = '';
 
-    // --- Utility Functions (Defined before use) ---
+    // --- Token Management ---
+    function getToken() {
+        const token = localStorage.getItem('accessToken');
+        // console.log("AdminProductPage - Retrieved token:", token ? token.substring(0,20) + "..." : "No token found");
+        return token;
+    }
+    function removeToken() {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('loggedInUser');
+        console.log("AdminProductPage - Tokens and user info removed.");
+    }
+    function getLoggedInUser() {
+        const userData = localStorage.getItem('loggedInUser');
+        try { return userData ? JSON.parse(userData) : null; }
+        catch (e) { console.error("Lỗi phân tích loggedInUser", e); return null; }
+    }
+
+    // --- Utility Functions ---
     function showToast(message, isSuccess = true) {
-        if (!toast || !toastMessage) return;
+        if (!toast || !toastMessage) { console.warn("Toast elements not found for:", message); return; }
         toastMessage.textContent = message;
         toast.className = `toast ${isSuccess ? 'success' : 'error'}`;
         toast.style.display = 'block';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 3000);
+        setTimeout(() => { if(toast) toast.style.display = 'none'; }, 3000);
     }
-
     function formatDate(dateString) {
         if (!dateString) return 'N/A';
-        try {
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return 'N/A';
-            return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-        } catch (e) {
-            console.warn("Error formatting date:", dateString, e);
-            return 'N/A';
-        }
+        try { const date = new Date(dateString); if (isNaN(date.getTime())) return 'N/A'; return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+        catch (e) { console.warn("Error formatting date:", dateString, e); return 'N/A'; }
     }
-
-    function prepareDateForBackend(dateString) {
-        if (!dateString) return null;
-        return dateString; // Send as YYYY-MM-DD
-    }
-
+    function prepareDateForBackend(dateString) { if (!dateString) return null; return dateString; }
     function formatDateForInput(dateString) {
         if (!dateString) return '';
-        try {
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return '';
-            const year = date.getFullYear();
-            const month = ('0' + (date.getMonth() + 1)).slice(-2);
-            const day = ('0' + date.getDate()).slice(-2);
-            return `${year}-${month}-${day}`;
-        } catch (e) {
-            console.warn("Error formatting date for input:", dateString, e);
-            return '';
-        }
+        try { const date = new Date(dateString); if (isNaN(date.getTime())) return ''; const year = date.getFullYear(); const month = ('0' + (date.getMonth() + 1)).slice(-2); const day = ('0' + date.getDate()).slice(-2); return `${year}-${month}-${day}`; }
+        catch (e) { console.warn("Error formatting date for input:", dateString, e); return ''; }
     }
-
-    // --- Pagination Logic (Defined before fetchProducts) ---
     function updatePaginationControls(productsOnPageCount) {
         if (currentPageSpan) currentPageSpan.textContent = `Trang: ${currentPage + 1}`;
         if (prevPageBtn) prevPageBtn.disabled = currentPage === 0;
         if (nextPageBtn) nextPageBtn.disabled = productsOnPageCount < pageSize;
     }
 
-    // --- API Call Functions ---
-    async function fetchProducts(page = 0) {
-        if (!productTableBody) return;
-        productTableBody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px;">Đang tải dữ liệu...</td></tr>`;
-        try {
-            // const token = localStorage.getItem('accessToken');
-            // const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-            const response = await fetch(`${API_BASE_URL}?pageNumber=${page}&pageSize=${pageSize}`/*, { headers }*/);
+    // --- API Call Wrapper (makeApiCall) ---
+    async function makeApiCall(url, method = 'GET', body = null, requiresAuth = true) {
+        const headers = { 'Content-Type': 'application/json' };
+        const token = getToken();
 
+        if (requiresAuth) {
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            } else {
+                console.warn(`API Call to ${url} requires auth but no token found. Redirecting to login.`);
+                showToast('Vui lòng đăng nhập để tiếp tục.', false);
+                window.location.href = '/login'; // Sử dụng đường dẫn controller
+                throw new Error('Unauthorized - No token, redirecting');
+            }
+        }
+        const config = { method: method, headers: headers };
+        if (body && (method === 'POST' || method === 'PATCH' || method === 'PUT' || method === 'DELETE')) {
+            config.body = JSON.stringify(body);
+        }
+        console.log(`AdminProductPage - Sending ${method} to ${url}`, config.body ? `with body: ${config.body.substring(0,100)}...` : '');
+        const response = await fetch(url, config);
+        console.log(`AdminProductPage - Raw response from ${url} - Status: ${response.status}, Content-Type: ${response.headers.get('Content-Type')}`);
+
+        if (response.status === 401 && token) {
+            showToast('Phiên đăng nhập không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.', false);
+            removeToken();
+            updateUserAuthStatusOnPage();
+            window.location.href = '/login';
+            throw new Error('Unauthorized');
+        }
+        if (response.status === 403 && token) {
+             showToast('Bạn không có quyền thực hiện hành động này.', false);
+             throw new Error('Forbidden');
+        }
+        return response;
+    }
+
+    // --- API Call Functions ---
+    async function fetchProducts(page = 0, searchTerm = '') {
+        currentPage = page;
+        currentSearchTerm = searchTerm.trim();
+
+        if (!productTableBody) { console.error("productTableBody element not found."); return; }
+        productTableBody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px;">Đang tải dữ liệu...</td></tr>`;
+
+        let apiUrl = `${API_PRODUCT_URL}?pageNumber=${page}&pageSize=${pageSize}`;
+        if (currentSearchTerm) {
+            apiUrl += `&keyword=${encodeURIComponent(currentSearchTerm)}`;
+        }
+        console.log("Fetching products from (Admin):", apiUrl);
+
+        try {
+            const response = await makeApiCall(apiUrl, 'GET', null, true);
             if (!response.ok) {
-                let errorMsg = `HTTP error! status: ${response.status}`;
+                let errorMsg = `Lỗi mạng khi tải sản phẩm (${response.status})`;
                 try {
-                    const errorData = await response.json();
-                    errorMsg = errorData.message || errorMsg;
-                } catch (e) { /* Ignore */ }
+                    if (response.headers.get("content-type")?.includes("application/json")) {
+                        const errorData = await response.json(); errorMsg = errorData.message || errorMsg;
+                    } else { errorMsg = await response.text(); }
+                } catch (e) {}
                 throw new Error(errorMsg);
             }
             const responseData = await response.json();
-
             if (responseData.status === 200 && responseData.data) {
                 renderProducts(responseData.data);
-                currentPage = page;
-                updatePaginationControls(responseData.data.length); // Call after definition
+                updatePaginationControls(responseData.data.length);
             } else {
-                showToast(`Lỗi tải sản phẩm: ${responseData.message || 'Không có dữ liệu'}`, false);
-                productTableBody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px;">Không tải được dữ liệu.</td></tr>`;
+                throw new Error(responseData.message || "Không thể tải sản phẩm từ server.");
             }
         } catch (error) {
-            console.error('Lỗi khi tải danh sách sản phẩm:', error);
-            showToast(`Lỗi kết nối khi tải sản phẩm: ${error.message}`, false);
-            productTableBody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px;">Lỗi kết nối. Vui lòng thử lại.</td></tr>`;
-            updatePaginationControls(0); // Reset pagination on error
+            if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+                console.error('Lỗi khi tải danh sách sản phẩm:', error);
+                showToast(`Lỗi kết nối khi tải sản phẩm: ${error.message}`, false);
+                if (productTableBody) productTableBody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px;">Lỗi kết nối. Vui lòng thử lại.</td></tr>`;
+                updatePaginationControls(0);
+            }
         }
     }
 
     async function fetchProductById(id) {
+        console.log(`fetchProductById - Fetching product with ID: ${id}`);
         try {
-            // const token = localStorage.getItem('accessToken');
-            // const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-            const response = await fetch(`${API_BASE_URL}/${id}`/*, { headers }*/);
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ message: `Sản phẩm ID ${id} không tìm thấy hoặc lỗi server.` }));
-                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-            }
-            const responseData = await response.json();
-            if (responseData.status === 200 && responseData.data) {
-                return responseData.data;
+            const response = await makeApiCall(`${API_PRODUCT_URL}/${id}`, 'GET', null, true);
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                const responseData = await response.json();
+                console.log(`fetchProductById(${id}) - Parsed JSON Response:`, responseData);
+                if (response.ok && responseData.status === 200 && responseData.data) {
+                    console.log(`fetchProductById(${id}) - Product data found:`, responseData.data);
+                    return responseData.data; // ProductResponse cần có categoryId
+                } else {
+                    const backendMessage = responseData.message || (responseData.data ? JSON.stringify(responseData.data) : 'Không tìm thấy sản phẩm hoặc lỗi dữ liệu.');
+                    showToast(`Lỗi tải chi tiết sản phẩm: ${backendMessage} (HTTP ${response.status}, App Status ${responseData.status})`, false);
+                    return null;
+                }
             } else {
-                showToast(`Lỗi tải chi tiết sản phẩm: ${responseData.message || 'Không tìm thấy'}`, false);
+                const errorText = await response.text();
+                console.warn(`fetchProductById(${id}) - Response not JSON. Text:`, errorText.substring(0,100));
+                showToast(`Lỗi server khi lấy chi tiết sản phẩm: ${response.statusText} (Code: ${response.status})`, false);
                 return null;
             }
         } catch (error) {
-            console.error(`Lỗi khi tải sản phẩm ID ${id}:`, error);
-            showToast(error.message || 'Lỗi khi tải chi tiết sản phẩm.', false);
+            if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+                console.error(`Lỗi kết nối hoặc JS khi tải sản phẩm ID ${id}:`, error);
+                showToast(error.message || 'Lỗi khi tải chi tiết sản phẩm.', false);
+            }
             return null;
         }
     }
@@ -509,7 +398,7 @@
             return;
         }
         products.forEach(product => {
-            const escapedName = product.name ? product.name.replace(/'/g, "\\'") : 'Sản phẩm không tên';
+            const escapedName = product.name ? product.name.replace(/'/g, "\\'") : 'Sản phẩm';
             const row = `
                 <tr>
                     <td>${product.id}</td>
@@ -522,12 +411,8 @@
                     <td>${formatDate(product.manufactureDate)}</td>
                     <td>${formatDate(product.expiryDate)}</td>
                     <td class="action-buttons">
-                        <button onclick="openEditModal(${product.id})" class="edit-btn" title="Sửa">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button onclick="deleteProduct(${product.id}, '${escapedName}')" class="delete-btn" title="Xóa">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                        <button onclick="openEditModal(${product.id})" class="edit-btn" title="Sửa"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteProduct(${product.id}, '${escapedName}')" class="delete-btn" title="Xóa"><i class="fas fa-trash-alt"></i></button>
                     </td>
                 </tr>
             `;
@@ -537,10 +422,7 @@
 
     // --- Modal Handling ---
     function openModal(isEditMode = false, product = null) {
-        if (!productForm || !modalTitle || !productModal) {
-            console.error("Modal elements not found!");
-            return;
-        }
+        if (!productForm || !modalTitle || !productModal) { console.error("Modal elements not found!"); return; }
         productForm.reset();
         if(formMessage) formMessage.textContent = '';
 
@@ -548,7 +430,11 @@
             modalTitle.textContent = 'Chỉnh Sửa Sản Phẩm';
             document.getElementById('productId').value = product.id;
             document.getElementById('name').value = product.name || '';
-            document.getElementById('categoryId').value = product.categoryId || '';
+            document.getElementById('categoryId').value = product.categoryId || ''; // QUAN TRỌNG: Cần categoryId từ backend
+            if (product.categoryId === undefined) {
+                console.warn(`Mở modal sửa cho sản phẩm ID ${product.id} nhưng không có categoryId. Kiểm tra API GET /product/{id} phải trả về 'categoryId'.`);
+                showToast("Lưu ý: Không tìm thấy ID danh mục cho sản phẩm này. Vui lòng nhập lại nếu cần.", false);
+            }
             document.getElementById('imageUrl').value = product.imageUrl || '';
             document.getElementById('price').value = product.price != null ? product.price : '';
             document.getElementById('stockQuantity').value = product.stockQuantity != null ? product.stockQuantity : '';
@@ -568,180 +454,178 @@
         if (productForm) productForm.reset();
     }
 
-    // --- Edit and Delete Actions (exposed to global scope) ---
+    // --- Edit and Delete Actions ---
     window.openEditModal = async (id) => {
-        console.log("Attempting to edit product with ID:", id);
+        console.log("AdminProductPage - openEditModal called for ID:", id);
         const product = await fetchProductById(id);
         if (product) {
-            if (product.categoryId === undefined) {
-                 console.warn(`Sản phẩm ID ${id} lấy về để sửa không có categoryId. Hãy đảm bảo API GET /{id} trả về trường này.`);
-            }
             openModal(true, product);
         } else {
-            showToast(`Không thể tải dữ liệu sản phẩm ID ${id} để sửa.`, false);
+            console.log(`AdminProductPage - openEditModal: Không thể lấy dữ liệu sản phẩm ID ${id} để sửa.`);
         }
     };
 
     window.deleteProduct = async (id, name) => {
         if (confirm(`Bạn có chắc chắn muốn xóa sản phẩm "${name}" (ID: ${id}) không?`)) {
             try {
-                // const token = localStorage.getItem('accessToken');
-                // const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-                const response = await fetch(`${API_BASE_URL}/${id}`, {
-                    method: 'DELETE'/*, headers*/
-                });
-                const responseData = await response.json();
+                const response = await makeApiCall(`${API_PRODUCT_URL}/${id}`, 'DELETE', null, true);
+                const contentType = response.headers.get("content-type");
+                let responseData;
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    responseData = await response.json();
+                } else { responseData = { message: await response.text(), status: response.status }; }
 
                 if (response.ok && responseData.status === 200) {
                     showToast(`Đã xóa sản phẩm "${name}" thành công!`, true);
-                    fetchProducts(currentPage);
-                } else {
-                    showToast(`Lỗi khi xóa sản phẩm: ${responseData.message || response.statusText}`, false);
-                }
+                    fetchProducts(currentPage, currentSearchTerm);
+                } else { showToast(`Lỗi khi xóa sản phẩm: ${responseData.message || response.statusText}`, false); }
             } catch (error) {
-                console.error('Lỗi khi xóa sản phẩm:', error);
-                showToast('Lỗi kết nối khi xóa sản phẩm.', false);
+                 if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+                    console.error('Lỗi khi xóa sản phẩm:', error);
+                    showToast('Lỗi kết nối khi xóa sản phẩm.', false);
+                }
             }
         }
     };
 
-    // --- Event Listeners and Initial Load (within DOMContentLoaded) ---
-    document.addEventListener('DOMContentLoaded', () => {
-        // Re-fetch DOM elements here to ensure they exist
-        const currentAddProductBtn = document.getElementById('addProductBtn');
-        const currentCloseModalBtn = document.getElementById('closeModalBtn');
-        const currentCancelModalBtn = document.getElementById('cancelModalBtn');
-        const currentProductForm = document.getElementById('productForm');
-        const currentPrevPageBtn = document.getElementById('prevPageButton');
-        const currentNextPageBtn = document.getElementById('nextPageButton');
-
-        if(currentAddProductBtn) {
-            currentAddProductBtn.addEventListener('click', (e) => {
-                e.preventDefault(); // Prevent default <a> behavior if it's a link
-                openModal();
-            });
-        }
-        if(currentCloseModalBtn) currentCloseModalBtn.addEventListener('click', closeModal);
-        if(currentCancelModalBtn) currentCancelModalBtn.addEventListener('click', closeModal);
-
-        window.addEventListener('click', (event) => {
-            if (event.target == productModal) { // productModal should be defined globally or fetched here
-                closeModal();
+    // --- Cập nhật trạng thái đăng nhập trên UI ---
+    function updateUserAuthStatusOnPage() {
+        const user = getLoggedInUser();
+        if (loggedInUserNameSpan) {
+            if (user && (user.userName || user.firstName)) {
+                const displayName = user.userName || `${user.firstName || ''} ${user.lastName || ''}`.trim();
+                loggedInUserNameSpan.textContent = displayName;
+            } else {
+                loggedInUserNameSpan.textContent = "Admin"; // Mặc định cho trang admin nếu không có thông tin
             }
-        });
+        }
+    }
 
-        if(currentProductForm) {
-            currentProductForm.addEventListener('submit', async (event) => {
+    // --- Event Listeners and Initial Load ---
+    document.addEventListener('DOMContentLoaded', () => {
+        productTableBody = document.getElementById('productTableBody');
+        addProductBtn = document.getElementById('addProductBtn');
+        productModal = document.getElementById('productModal');
+        closeModalBtn = document.getElementById('closeModalBtn');
+        cancelModalBtn = document.getElementById('cancelModalBtn');
+        productForm = document.getElementById('productForm');
+        modalTitle = document.getElementById('modalTitle');
+        formMessage = document.getElementById('formMessage');
+        toast = document.getElementById('toast');
+        toastMessage = document.getElementById('toastMessage');
+        loggedInUserNameSpan = document.getElementById('name-id');
+        logoutButton = document.getElementById('logoutButton'); // ID của nút logout trong sidebar
+        prevPageBtn = document.getElementById('prevPageButton');
+        nextPageBtn = document.getElementById('nextPageButton');
+        currentPageSpan = document.getElementById('currentPageDisplay');
+        productSearchInput = document.getElementById('productSearchInput');
+        productSearchButton = document.getElementById('productSearchButton');
+
+        const token = getToken();
+        if (!token && !window.location.pathname.toLowerCase().includes('login')) {
+            console.log("AdminProductPage: No token, redirecting to login.");
+            window.location.href = '/login';
+            return;
+        }
+        updateUserAuthStatusOnPage();
+
+        if(addProductBtn) addProductBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+        if(closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+        if(cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
+        window.addEventListener('click', (event) => { if (event.target == productModal) closeModal(); });
+
+        if(productForm) {
+            productForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 if(formMessage) formMessage.textContent = '';
-
-                const formData = new FormData(currentProductForm);
+                const formData = new FormData(productForm);
                 const id = formData.get('id');
                 const isEditMode = !!id;
+                let productData;
+                let url;
+                let method;
 
-                const productData = {
-                    name: formData.get('name'),
-                    categoryId: parseInt(formData.get('categoryId')),
-                    imageUrl: formData.get('imageUrl'),
-                    price: parseInt(formData.get('price')),
-                    stockQuantity: parseInt(formData.get('stockQuantity')),
-                    soldQuantity: parseInt(formData.get('soldQuantity')),
+                const nameVal = formData.get('name');
+                const categoryIdStr = formData.get('categoryId');
+                const priceStr = formData.get('price');
+                const stockQuantityStr = formData.get('stockQuantity');
+
+                if (!nameVal || !nameVal.trim()) { if(formMessage) {formMessage.textContent = 'Tên sản phẩm không được để trống.';} return; }
+                if (!categoryIdStr || isNaN(parseInt(categoryIdStr)) || parseInt(categoryIdStr) <= 0) { if(formMessage) {formMessage.textContent = 'ID Danh mục không hợp lệ.';} return; }
+                if (!priceStr || isNaN(parseInt(priceStr)) || parseInt(priceStr) < 0) { if(formMessage) {formMessage.textContent = 'Giá không hợp lệ.';} return; }
+                if (!stockQuantityStr || isNaN(parseInt(stockQuantityStr)) || parseInt(stockQuantityStr) < 0) { if(formMessage) {formMessage.textContent = 'Số lượng tồn kho không hợp lệ.';} return; }
+
+                productData = {
+                    name: nameVal, categoryId: parseInt(categoryIdStr), imageUrl: formData.get('imageUrl'),
+                    price: parseInt(priceStr), stockQuantity: parseInt(stockQuantityStr),
+                    soldQuantity: parseInt(formData.get('soldQuantity') || "0"),
                     manufactureDate: prepareDateForBackend(formData.get('manufactureDate')),
                     expiryDate: prepareDateForBackend(formData.get('expiryDate'))
                 };
 
-                if (!productData.name.trim()) {
-                    if(formMessage) { formMessage.textContent = 'Tên sản phẩm không được để trống.'; formMessage.style.color = 'red';}
-                    return;
-                }
-                if (isNaN(productData.categoryId) || productData.categoryId <= 0) {
-                     if(formMessage) { formMessage.textContent = 'ID Danh mục không hợp lệ.'; formMessage.style.color = 'red';}
-                    return;
-                }
-                // Add other validations as needed...
+                if (isEditMode) { url = `${API_PRODUCT_URL}/${id}`; method = 'PATCH'; }
+                else { url = API_PRODUCT_URL; method = 'POST'; }
 
-                const url = isEditMode ? `${API_BASE_URL}/${id}` : API_BASE_URL;
-                const method = isEditMode ? 'PATCH' : 'POST';
-
-                console.log(`Sending ${method} request to ${url} with data:`, JSON.stringify(productData));
-
+                console.log(`AdminProductPage - Sending ${method} to ${url} with data:`, JSON.stringify(productData));
                 try {
-                    // const token = localStorage.getItem('accessToken');
-                    // const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
-                    const headers = { 'Content-Type': 'application/json' };
-
-                    const response = await fetch(url, {
-                        method: method,
-                        headers: headers,
-                        body: JSON.stringify(productData)
-                    });
-
-                    const responseData = await response.json();
-                    console.log("Form submit response:", responseData);
+                    const response = await makeApiCall(url, method, productData, true);
+                    const contentType = response.headers.get("content-type");
+                    let responseData;
+                    if (contentType && contentType.indexOf("application/json") !== -1) {
+                        responseData = await response.json();
+                    } else { responseData = { message: await response.text(), status: response.status }; }
+                    console.log("AdminProductPage - Form submit response:", responseData);
 
                     if (response.ok && (responseData.status === 200 || responseData.status === 201)) {
                         showToast(isEditMode ? 'Cập nhật sản phẩm thành công!' : 'Thêm sản phẩm thành công!', true);
                         closeModal();
-                        fetchProducts(isEditMode ? currentPage : 0);
+                        fetchProducts(isEditMode ? currentPage : 0, currentSearchTerm);
                     } else {
                         const errorText = `Lỗi: ${responseData.message || response.statusText || 'Không thể lưu sản phẩm.'}`;
-                        if(formMessage) { formMessage.textContent = errorText; formMessage.style.color = 'red';}
+                        if(formMessage) { formMessage.textContent = errorText;}
                         showToast(errorText, false);
                     }
                 } catch (error) {
-                    console.error('Lỗi khi lưu sản phẩm:', error);
-                    const errorTextCatch = 'Lỗi kết nối hoặc xử lý. Vui lòng thử lại.';
-                    if(formMessage) { formMessage.textContent = errorTextCatch; formMessage.style.color = 'red';}
-                    showToast(errorTextCatch, false);
+                    if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+                        console.error('Lỗi khi lưu sản phẩm:', error);
+                        const errorTextCatch = 'Lỗi kết nối hoặc xử lý. Vui lòng thử lại.';
+                        if(formMessage) { formMessage.textContent = errorTextCatch;}
+                        showToast(errorTextCatch, false);
+                    }
                 }
             });
         }
 
-        if(currentPrevPageBtn) {
-            currentPrevPageBtn.addEventListener('click', () => {
-                if (currentPage > 0) {
-                    fetchProducts(currentPage - 1);
-                }
+        if(prevPageBtn) prevPageBtn.addEventListener('click', () => { if (currentPage > 0) fetchProducts(currentPage - 1, currentSearchTerm); });
+        if(nextPageBtn) nextPageBtn.addEventListener('click', () => { if (!nextPageBtn.disabled) fetchProducts(currentPage + 1, currentSearchTerm); });
+
+        if (logoutButton) {
+            logoutButton.addEventListener('click', (e) => {
+                e.preventDefault(); removeToken();
+                showToast('Bạn đã đăng xuất.', true);
+                setTimeout(() => { window.location.href = '/login'; }, 1500);
             });
         }
 
-        if(currentNextPageBtn) {
-            currentNextPageBtn.addEventListener('click', () => {
-                if (!currentNextPageBtn.disabled) { // Check if button is not disabled
-                     fetchProducts(currentPage + 1);
-                }
-            });
+        if (productSearchButton) productSearchButton.addEventListener('click', () => { fetchProducts(0, productSearchInput.value); });
+        if (productSearchInput) productSearchInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') { event.preventDefault(); fetchProducts(0, productSearchInput.value); } });
+
+        if (getToken()) { fetchProducts(currentPage, currentSearchTerm); }
+        else {
+             if (!window.location.pathname.toLowerCase().includes('login')) {
+                console.log("AdminProductPage: No token, user should be redirected to login.");
+                if(productTableBody) productTableBody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px;">Vui lòng <a href="/login">đăng nhập</a> để quản lý sản phẩm.</td></tr>`;
+                updatePaginationControls(0);
+             }
         }
 
-        // Initial Load
-        fetchProducts(currentPage);
-
-        // Sidebar toggle logic (basic example, adapt to your qlsp.css)
-        const menuBtn = document.getElementById('menu-btn');
-        const closeBtnSidebar = document.getElementById('close-btn'); // Renamed to avoid conflict with modal's close
-        const sidebar = document.querySelector('aside'); // Target the aside element directly
-
-        if (menuBtn && sidebar) {
-            menuBtn.addEventListener('click', () => {
-                sidebar.style.display = 'block'; // Or toggle a class like 'sidebar-visible'
-            });
-        }
-
-        if (closeBtnSidebar && sidebar) {
-            closeBtnSidebar.addEventListener('click', () => {
-                sidebar.style.display = 'none'; // Or toggle a class
-            });
-        }
-         // Dark mode toggle (placeholder)
+        const menuBtnSidebar = document.getElementById('menu-btn-sidebar');
+        const closeBtnSidebarElem = document.getElementById('close-btn-sidebar');
+        const sidebar = document.querySelector('aside');
+        if (menuBtnSidebar && sidebar) menuBtnSidebar.addEventListener('click', () => { sidebar.style.display = 'block'; });
+        if (closeBtnSidebarElem && sidebar) closeBtnSidebarElem.addEventListener('click', () => { sidebar.style.display = 'none'; });
         const darkModeToggle = document.querySelector('.dark-mode');
-        if (darkModeToggle) {
-            darkModeToggle.addEventListener('click', () => {
-                document.body.classList.toggle('dark-theme-variables'); // Assuming you have this class for dark mode
-                darkModeToggle.querySelector('span:nth-child(1)').classList.toggle('active');
-                darkModeToggle.querySelector('span:nth-child(2)').classList.toggle('active');
-                console.log("Dark mode toggled (placeholder)");
-            });
-        }
+        if (darkModeToggle) { /* ... (giữ nguyên) ... */ }
     });
 </script>
 </body>

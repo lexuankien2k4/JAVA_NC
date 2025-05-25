@@ -4,13 +4,16 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-@Setter
+
 @Getter
+@Setter
 @Builder
 public class CartItemResponse {
-    private Integer id;
+    private Long id;
     private Integer productId;
-    private String name;
+    private String productName;
+    private String productImageUrl;
+    private Integer unitPrice; // Đơn giá của sản phẩm
     private Integer quantity;
-    private Integer price;
+    private Integer lineTotal; // Thành tiền: unitPrice * quantity
 }

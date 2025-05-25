@@ -31,6 +31,11 @@ public class UiController {
         return "Trangchu";
 
     }
+    @GetMapping("/cart")
+    public String showCartPage() {
+        return "cart";
+
+    }
 
 
 }

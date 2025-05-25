@@ -20,6 +20,10 @@
         .category-header { background-color: #0054a6; }
         .breadcrumb-nav a:hover { text-decoration: underline; }
         .pagination-button { min-width: 36px; }
+        /* Toast Notification Styling */
+        .toast { display: none; position: fixed; bottom: 20px; right: 20px; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 5px; padding: 16px; z-index: 1050; font-size: 17px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .toast.success { background-color: #4CAF50; }
+        .toast.error { background-color: #f44336; }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -29,7 +33,7 @@
         <div class="flex flex-col md:flex-row justify-between items-center py-3">
             <div class="flex items-center">
                 <a href="/" class="flex items-center text-2xl font-bold text-red-600">
-                    <img src="https://lanchi.vn/wp-content/uploads/2023/04/logo-lanchi-mart.svg" alt="LANCHI MART Logo" class="h-10 mr-2">
+                    <img src="https://images.app.goo.gl/wEZCFer7BAzJUDGF6" alt="LANCHI MART Logo" class="h-10 mr-2">
                 </a>
                 <span class="text-xs text-gray-500 ml-2 hidden md:inline">Niềm tin của mọi nhà</span>
             </div>
@@ -46,12 +50,10 @@
                     <i class="fas fa-map-marker-alt mr-1"></i>
                     Tìm siêu thị
                 </a>
-                <a href="#" class="text-xs sm:text-sm text-gray-700 hover:text-red-600 hidden lg:flex items-center">
-                    <i class="fas fa-headset mr-1"></i>
-                    Hệ thống 24 siêu thị
-                </a>
-                <a href="#" id="cartIcon" class="relative text-gray-700 hover:text-red-600">
-                    <i class="fas fa-shopping-cart fa-lg"></i>
+                <div id="userAuthStatus" class="text-sm flex items-center">
+                    <a href="/login" class="text-gray-700 hover:text-red-600">Đăng nhập</a>
+                </div>
+                <a href="/cart" id="cartIcon" class="relative text-gray-700 hover:text-red-600"> <i class="fas fa-shopping-cart fa-lg"></i>
                     <span id="cartItemCount" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">0</span>
                 </a>
             </div>
@@ -132,49 +134,120 @@
     </div>
 </footer>
 
+<div id="toast" class="toast">
+    <span id="toastMessage"></span>
+</div>
+
 <script>
+    // URLs API
     const API_CATEGORY_URL = '/api/v1/categories';
     const API_PRODUCT_URL = '/api/v1/product';
+    const API_CART_URL = '/api/v1/cart';
 
+    // Trạng thái toàn cục
     let currentPage = 0;
-    let currentSortBy = 'newest'; // Mặc định, backend của bạn hiện không hỗ trợ sort
-    let itemsPerPage = 12; // Mặc định, backend của bạn nhận pageSize
-    let currentCategoryId = null; // Lưu ID của danh mục đang chọn, null là tất cả
-    let allProductsCurrentPage = []; // Lưu trữ tất cả sản phẩm của trang hiện tại để lọc/sắp xếp client-side
+    let currentSortBy = 'newest';
+    let itemsPerPage = 12;
+    let currentCategoryId = null; // null hoặc "all" nghĩa là tất cả sản phẩm
+    let currentSearchTerm = ''; // Thêm biến cho từ khóa tìm kiếm
+    let allProductsFromCurrentApiPage = [];
 
-    const categoryMenuEl = document.getElementById('categoryMenu');
-    const productGridEl = document.getElementById('productGrid');
-    const paginationControlsEl = document.getElementById('paginationControls');
-    const currentCategoryNameSpanEl = document.getElementById('currentCategoryName');
-    const categoryTitleH1El = document.getElementById('categoryTitle');
-    const sortBySelectEl = document.getElementById('sortBy');
-    const showCountSelectEl = document.getElementById('showCount');
-    const cartItemCountSpanEl = document.getElementById('cartItemCount');
+    // DOM Elements (sẽ được gán trong DOMContentLoaded)
+    let categoryMenuEl, productGridEl, paginationControlsEl, currentCategoryNameSpanEl,
+        categoryTitleH1El, sortBySelectEl, showCountSelectEl, cartItemCountSpanEl,
+        userAuthStatusEl, toast, toastMessage, searchInputEl;
+
+    // --- Quản lý Token & Guest Cart ID ---
+    function getToken() { return localStorage.getItem('accessToken'); }
+    function removeToken() {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('loggedInUser');
+        console.log("Tokens and user info removed from localStorage.");
+    }
+    function getLoggedInUser() {
+        const userData = localStorage.getItem('loggedInUser');
+        try { return userData ? JSON.parse(userData) : null; }
+        catch (e) { console.error("Lỗi phân tích loggedInUser từ localStorage", e); return null; }
+    }
+    function getGuestCartId() { return localStorage.getItem('guestCartId'); }
+    function storeGuestCartId(cartId) {
+        if (cartId) { localStorage.setItem('guestCartId', cartId); console.log("Đã lưu guestCartId:", cartId); }
+        else { localStorage.removeItem('guestCartId'); console.log("Đã xóa guestCartId vì giá trị là null/undefined"); }
+    }
+    function removeGuestCartId() { localStorage.removeItem('guestCartId'); console.log("GuestCartId đã được xóa."); }
+
+
+    // --- Hàm Tiện ích ---
+    function showToast(message, isSuccess = true) {
+        if (!toast || !toastMessage) { console.warn("Không tìm thấy phần tử toast:", message); return; }
+        toastMessage.textContent = message;
+        toast.className = `toast ${isSuccess ? 'success' : 'error'}`;
+        toast.style.display = 'block';
+        setTimeout(() => { if(toast) toast.style.display = 'none'; }, 3000);
+    }
 
     function formatPrice(price) {
         if (price == null) return 'Liên hệ';
         return price.toLocaleString('vi-VN') + ' ₫';
     }
 
-    // --- Hàm tiện ích ---
-    function showToast(message, isSuccess = true) {
-        console.log(`TOAST: ${message} (Success: ${isSuccess})`);
-        // Implement actual toast display if needed
+    // --- Hàm Gọi API Chung ---
+    async function makeApiCall(url, method = 'GET', body = null, requiresAuth = false) {
+        const headers = { 'Content-Type': 'application/json' };
+        const token = getToken();
+
+        if (requiresAuth) {
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            } else {
+                console.warn(`Gọi API ${url} yêu cầu xác thực nhưng không tìm thấy token.`);
+                showToast('Vui lòng đăng nhập để thực hiện hành động này.', false);
+                return { error: 'NO_TOKEN', status: 401, ok: false, headers: new Headers(), json: async () => ({message: "Yêu cầu đăng nhập"}), text: async () => "Yêu cầu đăng nhập" };
+            }
+        }
+        else if (token && url.includes(API_CART_URL)) {
+             headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const config = { method: method, headers: headers };
+        if (body && (method === 'POST' || method === 'PATCH' || method === 'PUT')) {
+            config.body = JSON.stringify(body);
+        }
+        console.log(`Gọi API: ${method} ${url}`, config.body ? `với body: ${config.body.substring(0,100)}...` : '');
+        const response = await fetch(url, config);
+        console.log(`Phản hồi thô từ ${url} - Status: ${response.status}, Content-Type: ${response.headers.get('Content-Type')}`);
+
+        if (response.status === 401 && token) {
+            showToast('Phiên đăng nhập không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.', false);
+            removeToken(); removeGuestCartId(); updateUserAuthStatus();
+            throw new Error('Unauthorized');
+        }
+        if (response.status === 403 && token) {
+             showToast('Bạn không có quyền thực hiện hành động này.', false);
+             throw new Error('Forbidden');
+        }
+        return response;
     }
 
-    // --- Tải Danh mục ---
+    // --- Tải và Hiển thị Danh mục ---
     async function fetchCategories() {
-        if (!categoryMenuEl) return;
+        if (!categoryMenuEl) { console.error("Category menu element not found."); return; }
         categoryMenuEl.innerHTML = '<p class="px-3 py-2 text-sm text-gray-500">Đang tải danh mục...</p>';
         try {
-            const response = await fetch(API_CATEGORY_URL); // Gọi API lấy tất cả danh mục
+            const response = await makeApiCall(API_CATEGORY_URL, 'GET', null, false);
             if (!response.ok) {
-                throw new Error(`Lỗi mạng khi tải danh mục: ${response.statusText}`);
+                let errorMsg = `Lỗi mạng khi tải danh mục (${response.status})`;
+                try {
+                    if (response.headers.get("content-type")?.includes("application/json")) {
+                        const errorData = await response.json(); errorMsg = errorData.message || errorMsg;
+                    } else { errorMsg = await response.text(); }
+                } catch (e) {}
+                throw new Error(errorMsg);
             }
-            const responseData = await response.json(); // ResponseData<List<CategoryResponse>>
+            const responseData = await response.json();
 
             if (responseData.status === 200 && responseData.data) {
-                // Thêm mục "Tất cả sản phẩm" vào đầu danh sách
                 const allProductsCategory = { id: "all", name: "Tất cả sản phẩm", active: true };
                 renderCategories([allProductsCategory, ...responseData.data]);
                 selectCategory(allProductsCategory.id, allProductsCategory.name);
@@ -182,8 +255,10 @@
                 throw new Error(responseData.message || "Không thể tải danh mục từ server.");
             }
         } catch (error) {
-            console.error("Lỗi tải danh mục:", error);
-            categoryMenuEl.innerHTML = `<p class="text-red-500 px-3 py-2 text-sm">Lỗi tải danh mục: ${error.message}</p>`;
+            if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+                console.error("Lỗi tải danh mục:", error);
+                if (categoryMenuEl) categoryMenuEl.innerHTML = `<p class="text-red-500 px-3 py-2 text-sm">Lỗi tải danh mục: ${error.message}</p>`;
+            }
         }
     }
 
@@ -194,7 +269,7 @@
             const link = document.createElement('a');
             link.href = `#category-${category.id}`;
             link.className = `block py-2 px-3 text-gray-700 hover:bg-red-100 hover:text-red-600 rounded text-sm transition-colors duration-150`;
-            if (category.active) {
+            if ((category.id === "all" && (currentCategoryId === null || currentCategoryId === "all")) || category.id === currentCategoryId) {
                 link.classList.add('bg-red-100', 'font-semibold', 'text-red-700');
             }
             link.textContent = category.name;
@@ -208,108 +283,105 @@
     }
 
     function selectCategory(categoryId, categoryName) {
-        currentCategoryId = categoryId === "all" ? null : parseInt(categoryId); // Chuyển sang số nếu không phải "all"
+        currentCategoryId = categoryId === "all" ? null : parseInt(categoryId);
         if(currentCategoryNameSpanEl) currentCategoryNameSpanEl.textContent = categoryName;
         if(categoryTitleH1El) categoryTitleH1El.textContent = categoryName;
-
         document.querySelectorAll('#categoryMenu a').forEach(a => {
             a.classList.remove('bg-red-100', 'font-semibold', 'text-red-700');
             if (a.dataset.categoryId == categoryId) {
                  a.classList.add('bg-red-100', 'font-semibold', 'text-red-700');
             }
         });
-        fetchProducts(0); // Luôn fetch lại từ trang 0 khi đổi category
+        // Khi chọn category, tìm kiếm với từ khóa hiện tại (nếu có) hoặc từ khóa rỗng
+        const searchTerm = searchInputEl ? searchInputEl.value : '';
+        fetchProducts(0, searchTerm);
     }
 
-    // --- Tải Sản phẩm ---
-    async function fetchProducts(page = 0) {
+    // --- Tải và Hiển thị Sản phẩm ---
+    async function fetchProducts(page = 0, keyword = '') {
         currentPage = page;
-        if (!productGridEl) return;
+        currentSearchTerm = keyword.trim(); // Cập nhật từ khóa tìm kiếm hiện tại
+
+        if (!productGridEl) { console.error("Product grid element not found."); return;}
         productGridEl.innerHTML = '<p class="col-span-full text-center py-10 text-gray-500">Đang tải sản phẩm...</p>';
 
-        // API của bạn nhận pageNumber và pageSize
-        const apiUrl = `${API_PRODUCT_URL}?pageNumber=${page}&pageSize=${itemsPerPage}`;
+        let apiUrl = `${API_PRODUCT_URL}?pageNumber=${page}&pageSize=${itemsPerPage}`;
+        if (currentSearchTerm) {
+            apiUrl += `&keyword=${encodeURIComponent(currentSearchTerm)}`;
+        }
         console.log("Fetching products from:", apiUrl);
-
         try {
-            const response = await fetch(apiUrl);
+            const response = await makeApiCall(apiUrl, 'GET', null, false);
             if (!response.ok) {
-                throw new Error(`Lỗi mạng khi tải sản phẩm: ${response.statusText}`);
+                let errorMsg = `Lỗi mạng khi tải sản phẩm (${response.status})`;
+                try {
+                    if (response.headers.get("content-type")?.includes("application/json")) {
+                        const errorData = await response.json(); errorMsg = errorData.message || errorMsg;
+                    } else { errorMsg = await response.text(); }
+                } catch (e) {}
+                throw new Error(errorMsg);
             }
-            const responseData = await response.json(); // ResponseData<List<ProductResponse>>
-
+            const responseData = await response.json();
             if (responseData.status === 200 && responseData.data) {
-                allProductsCurrentPage = responseData.data; // Lưu trữ để lọc/sắp xếp client-side
-                applyFiltersAndSorting(); // Áp dụng lọc và sắp xếp client-side
-                // Phân trang dựa trên số lượng item trả về từ API cho page hiện tại
-                // Vì API không trả về totalPages, chúng ta sẽ giả định
-                renderPaginationBasedOnFetchedItems(allProductsCurrentPage.length);
+                allProductsFromCurrentApiPage = responseData.data;
+                applyFiltersAndSorting(); // Lọc và sắp xếp ở client
+                renderPaginationBasedOnFetchedItems(allProductsFromCurrentApiPage.length);
             } else {
                 throw new Error(responseData.message || "Không thể tải sản phẩm từ server.");
             }
         } catch (error) {
-            console.error("Lỗi tải sản phẩm:", error);
-            if(productGridEl) productGridEl.innerHTML = `<p class="col-span-full text-center py-10 text-red-500">Lỗi tải sản phẩm: ${error.message}.</p>`;
-            if(paginationControlsEl) paginationControlsEl.innerHTML = '';
+            if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+                console.error("Lỗi tải sản phẩm:", error);
+                if(productGridEl) productGridEl.innerHTML = `<p class="col-span-full text-center py-10 text-red-500">Lỗi tải sản phẩm: ${error.message}.</p>`;
+                if(paginationControlsEl) paginationControlsEl.innerHTML = '';
+            }
         }
     }
 
     function applyFiltersAndSorting() {
         if (!productGridEl) return;
-        let productsToDisplay = [...allProductsCurrentPage]; // Tạo bản sao để thao tác
+        let productsToDisplay = [...allProductsFromCurrentApiPage];
 
-        // 1. Lọc theo category (Client-side)
-        if (currentCategoryId !== null) {
+        // 1. Lọc theo category (Client-side) - Chỉ thực hiện nếu API product không lọc theo category
+        // Nếu API product đã hỗ trợ &categoryId= thì không cần đoạn này nữa
+        if (currentCategoryId !== null && currentCategoryId !== "all") {
+            console.log("Client-side filtering by categoryId:", currentCategoryId);
+            // QUAN TRỌNG: ProductResponse từ backend PHẢI có trường categoryId
             productsToDisplay = productsToDisplay.filter(p => p.categoryId === currentCategoryId);
-            // Lưu ý: ProductResponse của bạn cần có categoryId để lọc này hoạt động
-            // Nếu ProductResponse chỉ có categoryName, bạn cần sửa DTO và Mapper ở backend
-            // Hoặc lọc theo categoryName nếu đó là cách duy nhất:
-            // const selectedCategoryName = document.querySelector('#categoryMenu a.active')?.textContent;
-            // if (selectedCategoryName && selectedCategoryName !== "Tất cả sản phẩm") {
-            //    productsToDisplay = productsToDisplay.filter(p => p.categoryName === selectedCategoryName);
-            // }
         }
 
         // 2. Sắp xếp (Client-side)
+        console.log("Client-side sorting by:", currentSortBy);
         switch (currentSortBy) {
-            case 'price-asc':
-                productsToDisplay.sort((a, b) => (a.price || 0) - (b.price || 0));
-                break;
-            case 'price-desc':
-                productsToDisplay.sort((a, b) => (b.price || 0) - (a.price || 0));
-                break;
-            case 'name-asc':
-                productsToDisplay.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-                break;
-            // 'newest' là mặc định, không cần sắp xếp lại nếu API đã trả về theo thứ tự đó
-            // Nếu API không sắp xếp theo 'newest', bạn cần trường 'createdAt' hoặc 'id' để sắp xếp
+            case 'price-asc': productsToDisplay.sort((a, b) => (a.price || 0) - (b.price || 0)); break;
+            case 'price-desc': productsToDisplay.sort((a, b) => (b.price || 0) - (a.price || 0)); break;
+            case 'name-asc': productsToDisplay.sort((a, b) => (a.name || '').localeCompare(b.name || '')); break;
         }
         renderProducts(productsToDisplay);
     }
-
 
     function renderProducts(products) {
         if (!productGridEl) return;
         productGridEl.innerHTML = '';
         if (!products || products.length === 0) {
-            productGridEl.innerHTML = '<p class="col-span-full text-center py-10 text-gray-500">Không tìm thấy sản phẩm nào.</p>';
+            productGridEl.innerHTML = `<p class="col-span-full text-center py-10 text-gray-500">Không tìm thấy sản phẩm nào${currentCategoryId && currentCategoryId !== "all" ? ' trong danh mục này' : (currentSearchTerm ? ' với từ khóa tìm kiếm' : '')}.</p>`;
             return;
         }
         products.forEach(product => {
-            // Giả sử ProductResponse có các trường: id, name, imageUrl, price, promotionInfo (tự tạo)
-            const promotionInfo = `15-09-2023 - 16-10-2023`; // Dữ liệu mẫu, thay bằng product.promotionInfo nếu có
+            const escapedName = product.name ? product.name.replace(/'/g, "\\'") : 'Sản phẩm';
+            const promotionInfo = product.promotionInfo || `Khuyến mãi đặc biệt`;
             const productCard = `
                 <div class="product-card bg-white rounded-lg shadow-lg overflow-hidden flex flex-col justify-between">
                     <a href="/san-pham/${product.id}" class="block">
-                        <img src="${product.imageUrl || 'https://placehold.co/300x300/EFEFEF/AAAAAA&text=No+Image'}" alt="${product.name}" class="w-full h-48 object-cover">
+                        <img src="${product.imageUrl || 'https://placehold.co/300x300/EFEFEF/AAAAAA&text=No+Image'}" alt="${escapedName}" class="w-full h-48 object-cover">
                     </a>
                     <div class="p-3 sm:p-4 flex flex-col flex-grow">
                         <h3 class="font-semibold text-sm sm:text-md text-gray-800 truncate mb-1 flex-grow" title="${product.name}">
-                            <a href="/san-pham/${product.id}" class="hover:text-red-600">${product.name}</a>
+                            <a href="/san-pham/${product.id}" class="hover:text-red-600">${product.name || 'N/A'}</a>
                         </h3>
                         <p class="text-xs text-gray-500 mb-2">Thời gian áp dụng ${promotionInfo}</p>
                         <p class="text-red-600 font-bold text-md sm:text-lg mb-3">${formatPrice(product.price)}</p>
-                        <button onclick="addToCart(${product.id}, '${product.name ? product.name.replace(/'/g, "\\'") : 'Sản phẩm'}')" class="add-to-cart-btn w-full text-white font-semibold py-2 px-3 rounded-md text-xs sm:text-sm transition-colors mt-auto">
+                        <button onclick="addToCart(${product.id}, '${escapedName}')" class="add-to-cart-btn w-full text-white font-semibold py-2 px-3 rounded-md text-xs sm:text-sm transition-colors mt-auto">
                             <i class="fas fa-cart-plus mr-1 sm:mr-2"></i>THÊM VÀO GIỎ
                         </button>
                     </div>
@@ -322,12 +394,16 @@
     function renderPaginationBasedOnFetchedItems(fetchedItemsCount) {
         if (!paginationControlsEl) return;
         paginationControlsEl.innerHTML = '';
+        if (fetchedItemsCount === 0 && currentPage === 0 && (currentCategoryId !== null || currentSearchTerm !== '')) {
+        } else if (currentPage === 0 && fetchedItemsCount < itemsPerPage && !currentSearchTerm && currentCategoryId === null) {
+             return;
+        }
 
         const prevButton = document.createElement('button');
         prevButton.innerHTML = '<i class="fas fa-chevron-left"></i> Trước';
         prevButton.className = 'pagination-button px-3 py-2 mx-1 bg-white border border-gray-300 rounded-md text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed';
         prevButton.disabled = currentPage === 0;
-        prevButton.addEventListener('click', () => fetchProducts(currentPage - 1));
+        prevButton.addEventListener('click', () => fetchProducts(currentPage - 1, currentSearchTerm));
         paginationControlsEl.appendChild(prevButton);
 
         const currentPageEl = document.createElement('span');
@@ -338,43 +414,167 @@
         const nextButton = document.createElement('button');
         nextButton.innerHTML = 'Sau <i class="fas fa-chevron-right"></i>';
         nextButton.className = 'pagination-button px-3 py-2 mx-1 bg-white border border-gray-300 rounded-md text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed';
-        // Nút "Next" sẽ bị vô hiệu hóa nếu số lượng sản phẩm trả về ít hơn pageSize
         nextButton.disabled = fetchedItemsCount < itemsPerPage;
-        nextButton.addEventListener('click', () => {
-            if (!nextButton.disabled) fetchProducts(currentPage + 1);
-        });
+        nextButton.addEventListener('click', () => { if (!nextButton.disabled) fetchProducts(currentPage + 1, currentSearchTerm); });
         paginationControlsEl.appendChild(nextButton);
     }
 
-
-    function addToCart(productId, productName) {
+    // --- Chức năng Giỏ hàng ---
+    async function addToCart(productId, productName) {
         console.log("Thêm sản phẩm ID:", productId, `(${productName})`, "vào giỏ hàng");
-        let currentCartCount = parseInt(cartItemCountSpanEl.textContent) || 0;
-        if(cartItemCountSpanEl) cartItemCountSpanEl.textContent = currentCartCount + 1;
-        showToast(`Đã thêm "${productName}" vào giỏ!`, true);
-        // Gọi API POST /api/v1/cart/add ở đây nếu cần
+        const token = getToken();
+        const guestCartId = getGuestCartId();
+        const cartItemRequest = { productId: productId, quantity: 1 };
+        if (!token && guestCartId) { cartItemRequest.guestCartId = guestCartId; }
+
+        try {
+            const response = await makeApiCall(`${API_CART_URL}/add`, 'POST', cartItemRequest, false);
+            if (response.error === 'NO_TOKEN') return;
+
+            const contentType = response.headers.get("content-type");
+            let responseData;
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                responseData = await response.json();
+            } else {
+                const textResponse = await response.text();
+                if (response.ok) {
+                    console.error("addToCart response was not JSON, but status was OK. Text:", textResponse.substring(0,200));
+                    showToast(`Lỗi thêm vào giỏ: Phản hồi không hợp lệ từ server (HTML thay vì JSON). Status: ${response.status}`, false);
+                } else {
+                    throw new Error(`Lỗi server: ${response.statusText}. Chi tiết: ${textResponse.substring(0,100)}... (Status: ${response.status})`);
+                }
+                return;
+            }
+            console.log("Add to cart response data (JSON):", responseData);
+
+            if (response.ok && (responseData.status === 200 || responseData.status === 201)) {
+                showToast(`Đã thêm "${productName}" vào giỏ!`, true);
+                const cartData = responseData.data;
+                if (!token && cartData && cartData.guestCartId) { storeGuestCartId(cartData.guestCartId); }
+                if (cartData && cartData.totalQuantity !== undefined) {
+                    if(cartItemCountSpanEl) cartItemCountSpanEl.textContent = cartData.totalQuantity;
+                } else { fetchCartDetailsAndUpdateCount(); }
+            } else {
+                showToast(`Lỗi thêm vào giỏ: ${responseData.message || 'Không thành công'} (App Code: ${responseData.status || response.status})`, false);
+            }
+        } catch (error) {
+            if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+                console.error('Lỗi khi thêm vào giỏ hàng:', error);
+                showToast(`Lỗi khi thêm vào giỏ hàng: ${error.message}`, false);
+            }
+        }
     }
     window.addToCart = addToCart;
 
+    // --- Cập nhật trạng thái đăng nhập trên UI ---
+    function updateUserAuthStatus() {
+        const user = getLoggedInUser();
+        if (userAuthStatusEl) {
+            if (user && (user.userName || user.firstName)) {
+                const displayName = user.userName || `${user.firstName || ''} ${user.lastName || ''}`.trim();
+                userAuthStatusEl.innerHTML = `
+                    <span class="text-gray-700 mr-2">Chào, ${displayName}!</span>
+                    <a href="#" id="logoutLinkInHeader" class="text-red-600 hover:underline font-semibold">Đăng xuất</a>
+                `;
+                const logoutLink = document.getElementById('logoutLinkInHeader');
+                if (logoutLink && !logoutLink.hasLogoutListener) {
+                    logoutLink.addEventListener('click', (e) => {
+                        e.preventDefault(); removeToken(); removeGuestCartId();
+                        showToast('Bạn đã đăng xuất.', true);
+                        updateUserAuthStatus();
+                    });
+                    logoutLink.hasLogoutListener = true;
+                }
+            } else {
+                userAuthStatusEl.innerHTML = '<a href="/login.html" class="text-gray-700 hover:text-red-600 font-semibold">Đăng nhập</a>';
+            }
+        }
+        fetchCartDetailsAndUpdateCount();
+    }
+
+    async function fetchCartDetailsAndUpdateCount() {
+        if (!cartItemCountSpanEl) return;
+        const token = getToken();
+        let url = API_CART_URL;
+        let requiresAuthForGetCart = false;
+
+        if (token) {
+            requiresAuthForGetCart = true;
+        } else {
+            const guestCartId = getGuestCartId();
+            if (guestCartId) {
+                url += `?guestCartId=${guestCartId}`;
+            } else {
+                cartItemCountSpanEl.textContent = '0'; return;
+            }
+        }
+        try {
+            const response = await makeApiCall(url, 'GET', null, requiresAuthForGetCart);
+            if (response.error === 'NO_TOKEN' && requiresAuthForGetCart) { if(cartItemCountSpanEl) cartItemCountSpanEl.textContent = '0'; return; }
+            if (!response.ok) { if(cartItemCountSpanEl) cartItemCountSpanEl.textContent = '0'; return; }
+
+            const responseData = await response.json();
+            if (responseData.status === 200 && responseData.data && responseData.data.totalQuantity !== undefined) {
+                cartItemCountSpanEl.textContent = responseData.data.totalQuantity;
+            } else {
+                cartItemCountSpanEl.textContent = '0';
+            }
+        } catch (error) {
+            if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+                console.error("Lỗi tải chi tiết giỏ hàng:", error);
+            }
+            if(cartItemCountSpanEl) cartItemCountSpanEl.textContent = '0';
+        }
+    }
+
     // --- Khởi tạo ---
     document.addEventListener('DOMContentLoaded', () => {
-        fetchCategories(); // Tải danh mục trước, sau đó tải sản phẩm mặc định
+        categoryMenuEl = document.getElementById('categoryMenu');
+        productGridEl = document.getElementById('productGrid');
+        paginationControlsEl = document.getElementById('paginationControls');
+        currentCategoryNameSpanEl = document.getElementById('currentCategoryName');
+        categoryTitleH1El = document.getElementById('categoryTitle');
+        sortBySelectEl = document.getElementById('sortBy');
+        showCountSelectEl = document.getElementById('showCount');
+        cartItemCountSpanEl = document.getElementById('cartItemCount');
+        userAuthStatusEl = document.getElementById('userAuthStatus');
+        toast = document.getElementById('toast');
+        toastMessage = document.getElementById('toastMessage');
+        searchInputEl = document.getElementById('searchInput');
 
-        if (sortBySelectEl) {
-            sortBySelectEl.addEventListener('change', (e) => {
-                currentSortBy = e.target.value;
-                applyFiltersAndSorting(); // Sắp xếp lại dữ liệu đã tải của trang hiện tại
-                // Hoặc fetchProducts(0, currentCategoryId); // Nếu muốn API hỗ trợ sort và tải lại từ đầu
+        updateUserAuthStatus();
+        fetchCategories();
+
+        if (sortBySelectEl) { sortBySelectEl.addEventListener('change', (e) => { currentSortBy = e.target.value; applyFiltersAndSorting(); }); }
+        if (showCountSelectEl) { showCountSelectEl.addEventListener('change', (e) => { itemsPerPage = parseInt(e.target.value); fetchProducts(0, searchInputEl.value); }); }
+
+        if (searchInputEl) {
+            searchInputEl.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    const searchTerm = searchInputEl.value;
+                    console.log("Searching from header for:", searchTerm);
+                    currentCategoryId = null; // Reset category filter
+                    if(currentCategoryNameSpanEl) currentCategoryNameSpanEl.textContent = "Kết quả tìm kiếm";
+                    if(categoryTitleH1El) categoryTitleH1El.textContent = `Kết quả cho "${searchTerm}"`;
+                    document.querySelectorAll('#categoryMenu a').forEach(a => a.classList.remove('bg-red-100', 'font-semibold', 'text-red-700'));
+                    // Đánh dấu "Tất cả sản phẩm" là active nếu có
+                    const allProductsLink = document.querySelector('#categoryMenu a[data-category-id="all"]');
+                    if(allProductsLink) allProductsLink.classList.add('bg-red-100', 'font-semibold', 'text-red-700');
+
+                    fetchProducts(0, searchTerm);
+                }
             });
         }
-        if (showCountSelectEl) {
-            showCountSelectEl.addEventListener('change', (e) => {
-                itemsPerPage = parseInt(e.target.value);
-                fetchProducts(0, currentCategoryId); // Tải lại từ trang đầu với pageSize mới
-            });
-        }
+
+        const menuBtnSidebar = document.getElementById('menu-btn-sidebar');
+        const closeBtnSidebarElem = document.getElementById('close-btn-sidebar');
+        const sidebar = document.querySelector('aside');
+        if (menuBtnSidebar && sidebar) menuBtnSidebar.addEventListener('click', () => { sidebar.style.display = 'block'; });
+        if (closeBtnSidebarElem && sidebar) closeBtnSidebarElem.addEventListener('click', () => { sidebar.style.display = 'none'; });
+        const darkModeToggle = document.querySelector('.dark-mode');
+        if (darkModeToggle) { /* ... (giữ nguyên logic) ... */ }
     });
-
 </script>
 </body>
 </html>

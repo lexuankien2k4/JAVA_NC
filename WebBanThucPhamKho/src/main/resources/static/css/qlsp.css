@@ -484,7 +484,7 @@ main .dashboard h1 { /* Kiểu cho tiêu đề WELCOME */
     font-weight: 500;
     cursor: pointer;
     transition: opacity 0.2s ease;
-    color: var(--color-white); /* Mặc định chữ màu trắng */
+    color: var(--color-black); /* Mặc định chữ màu đen */
 }
 #productTable .action-buttons a:last-child,
 #productTable .action-buttons button:last-child {

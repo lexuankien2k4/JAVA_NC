@@ -3,11 +3,12 @@ import com.BTLJAVA.WebBanThucPhamKho.dto.request.CategoryRequest;
 import com.BTLJAVA.WebBanThucPhamKho.dto.response.CategoryResponse;
 import com.BTLJAVA.WebBanThucPhamKho.entity.Category;
 import com.BTLJAVA.WebBanThucPhamKho.entity.Product;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
 
-@Service
+@Component
 public class CategoryMapper {
 
     public CategoryResponse toDTO(Category category) {

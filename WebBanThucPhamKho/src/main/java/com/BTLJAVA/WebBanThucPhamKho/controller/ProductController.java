@@ -22,13 +22,15 @@ public class ProductController {
     @GetMapping
     public ResponseData<List<ProductResponse>> getProducts(
             @RequestParam(value = "pageNumber", defaultValue = "0") Integer pageNumber,
-            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
+            @RequestParam(value = "keyword", required = false) String keyword) { // <<--- THÊM THAM SỐ KEYWORD
 
-        List<ProductResponse> products = productService.getProducts(pageNumber, pageSize);
+
+        List<ProductResponse> products = productService.getProducts(pageNumber, pageSize, keyword); // <<--- TRUYỀN KEYWORD VÀO SERVICE
 
         return ResponseData.<List<ProductResponse>>builder()
                 .status(HttpStatus.OK.value())
-                .message("Success")
+                .message("Lấy danh sách sản phẩm thành công.")
                 .data(products)
                 .build();
     }
