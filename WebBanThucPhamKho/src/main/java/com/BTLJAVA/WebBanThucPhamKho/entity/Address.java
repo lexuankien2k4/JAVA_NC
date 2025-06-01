@@ -2,6 +2,7 @@ package com.BTLJAVA.WebBanThucPhamKho.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 @Setter
 @Getter
 @Builder
@@ -11,22 +12,20 @@ import lombok.*;
 @Table(name = "addresses")
 public class Address extends AbstractEntity<Integer> {
 
-    @Column(name = "number")
+    @Column(name = "number", length = 50)
     private String number;
 
-    @Column(name = "street")
+    @Column(name = "street", length = 255, nullable = false)
     private String street;
 
-    @Column(name = "ward")
+    @Column(name = "ward", length = 100, nullable = false)
     private String ward;
 
-    @Column(name = "district")
+    @Column(name = "district", length = 100, nullable = false)
     private String district;
 
-    @Column(name = "city")
+    @Column(name = "city", length = 100, nullable = false)
     private String city;
 
-    @OneToOne(mappedBy = "address", fetch = FetchType.EAGER)
-    private Order order;
-
+    // Bỏ trường 'Order order;' vì Order là phía sở hữu mối quan hệ.
 }

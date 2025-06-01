@@ -36,6 +36,17 @@ public class UiController {
         return "cart";
 
     }
+    @GetMapping("/checkout")
+    public String showCheckoutPage() {
+        return "checkout";
+
+    }
+    @GetMapping("/order-confirmation")
+    public String showConfirmationPage() {
+        return "order-confirmation";
+
+    }
+
 
 
 }

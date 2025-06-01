@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xác nhận Đơn hàng - LANCHI MART</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <style>
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+    .header-banner { background-color: #e30019; }
+    .toast { display: none; position: fixed; bottom: 20px; right: 20px; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 5px; padding: 16px; z-index: 1050; font-size: 17px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+    .toast.success { background-color: #4CAF50; }
+    .toast.error { background-color: #f44336; }
+    .order-summary-table th, .order-summary-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb; /* gray-200 */
+    }
+    .order-summary-table th {
+        background-color: #f9fafb; /* gray-50 */
+        font-weight: 600;
+        font-size: 0.75rem; /* text-xs */
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #4b5563; /* gray-600 */
+    }
+    .order-summary-table img {
+        width: 4rem; /* w-16 */
+        height: 4rem; /* h-16 */
+        object-fit: cover;
+        border-radius: 0.25rem; /* rounded-sm */
+        margin-right: 1rem;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+<header class="bg-white shadow-md sticky top-0 z-50">
+  <div class="container mx-auto px-4">
+    <div class="flex flex-col md:flex-row justify-between items-center py-3">
+      <div class="flex items-center">
+        <a href="/" class="flex items-center text-2xl font-bold text-red-600">
+          <img src="https://lanchi.vn/wp-content/uploads/2023/04/logo-lanchi-mart.svg" alt="LANCHI MART Logo" class="h-10 mr-2">
+        </a>
+      </div>
+      <div class="flex items-center space-x-3 sm:space-x-4">
+        <div id="userAuthStatusHeader" class="text-sm flex items-center">
+          <a href="/login" class="text-gray-700 hover:text-red-600">Đăng nhập</a>
+        </div>
+        <a href="/cart" id="cartIconHeader" class="relative text-gray-700 hover:text-red-600">
+          <i class="fas fa-shopping-cart fa-lg"></i>
+          <span id="cartItemCountHeader" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">0</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="container mx-auto px-2 sm:px-4 mt-6 mb-8">
+  <div id="orderConfirmationContent" class="bg-white p-6 md:p-8 rounded-lg shadow-lg max-w-3xl mx-auto">
+    <div id="confirmationLoadingMessage" class="text-center py-10 text-gray-500">
+      <i class="fas fa-spinner fa-spin fa-2x"></i>
+      <p class="mt-2">Đang tải thông tin đơn hàng...</p>
+    </div>
+
+    <div id="confirmationDetails" class="hidden">
+      <div class="text-center mb-8">
+        <i class="fas fa-check-circle fa-4x text-green-500 mb-3"></i>
+        <h1 class="text-3xl font-bold text-green-600">Đặt Hàng Thành Công!</h1>
+        <p class="text-gray-600 mt-2">Cảm ơn bạn đã mua sắm tại LANCHI MART. Đơn hàng của bạn đang được xử lý.</p>
+      </div>
+
+      <div class="border-b pb-4 mb-6">
+        <h2 class="text-xl font-semibold text-gray-700 mb-3">Thông Tin Đơn Hàng</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+          <div><strong>Mã đơn hàng:</strong> <span id="confOrderId" class="text-red-600 font-medium"></span></div>
+          <div><strong>Ngày đặt:</strong> <span id="confOrderDate"></span></div>
+          <div><strong>Trạng thái:</strong> <span id="confOrderStatus" class="font-medium"></span></div>
+          <div><strong>Tổng tiền:</strong> <span id="confOrderTotal" class="font-bold text-red-600"></span></div>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="text-xl font-semibold text-gray-700 mb-3">Thông Tin Người Nhận</h2>
+        <div class="text-sm space-y-1">
+          <p><strong>Tên người nhận:</strong> <span id="confCustomerName"></span></p>
+          <p><strong>Số điện thoại:</strong> <span id="confCustomerPhone"></span></p>
+          <p id="confCustomerEmailContainer" class="hidden"><strong>Email:</strong> <span id="confCustomerEmail"></span></p>
+          <p><strong>Địa chỉ giao hàng:</strong> <span id="confShippingAddress"></span></p>
+          <p id="confOrderTitleContainer" class="hidden"><strong>Ghi chú:</strong> <span id="confOrderTitle"></span></p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-gray-700 mb-3">Chi Tiết Sản Phẩm</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full order-summary-table">
+            <thead>
+            <tr>
+              <th>Sản phẩm</th>
+              <th class="text-center">Số lượng</th>
+              <th class="text-right">Đơn giá</th>
+              <th class="text-right">Thành tiền</th>
+            </tr>
+            </thead>
+            <tbody id="confOrderItemsContainer">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mt-8 text-center">
+        <a href="/" class="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-6 rounded-md transition-colors mr-3">
+          <i class="fas fa-home mr-2"></i>Tiếp tục mua sắm
+        </a>
+        <a href="/my-orders" id="viewOrderHistoryBtn" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-md transition-colors">
+          <i class="fas fa-history mr-2"></i>Xem lịch sử đơn hàng
+        </a>
+      </div>
+    </div>
+    <div id="orderNotFoundError" class="hidden text-center py-10">
+      <i class="fas fa-exclamation-circle fa-3x text-red-500 mb-3"></i>
+      <p class="text-red-600 text-lg">Không tìm thấy thông tin đơn hàng hoặc bạn không có quyền truy cập.</p>
+      <a href="/" class="mt-4 inline-block bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-md transition-colors">
+        Về trang chủ
+      </a>
+    </div>
+  </div>
+</div>
+
+<footer class="bg-gray-800 text-white py-8 mt-10 text-sm">
+  <div class="container mx-auto px-4 text-center">
+    <p>&copy; 2025 LANCHI MART - Niềm tin của mọi nhà. Phát triển bởi Nhóm 17.</p>
+  </div>
+</footer>
+<div id="toast" class="toast"><span id="toastMessage"></span></div>
+
+<script>
+  const API_ORDER_URL_CONF = '/api/v1/orders'; // Đổi tên để tránh nhầm lẫn
+
+  // DOM Elements
+  let userAuthStatusHeaderEl_oc, cartItemCountHeaderEl_oc, toast_oc, toastMessage_oc,
+      confirmationLoadingMessageEl_oc, confirmationDetailsEl_oc, orderNotFoundErrorEl_oc,
+      confOrderIdEl, confOrderDateEl, confOrderStatusEl, confOrderTotalEl,
+      confCustomerNameEl, confCustomerPhoneEl, confCustomerEmailEl, confCustomerEmailContainerEl,
+      confShippingAddressEl, confOrderTitleEl, confOrderTitleContainerEl, confOrderItemsContainerEl,
+      viewOrderHistoryBtn_oc;
+
+
+  // --- Token & Guest Cart Management ---
+  function getToken_oc() { return localStorage.getItem('accessToken'); }
+  function removeToken_oc() { localStorage.removeItem('accessToken'); localStorage.removeItem('refreshToken'); localStorage.removeItem('loggedInUser'); }
+  function getLoggedInUser_oc() { const u = localStorage.getItem('loggedInUser'); try { return u ? JSON.parse(u) : null; } catch(e) { return null; } }
+  function removeGuestCartId_oc() { localStorage.removeItem('guestCartId'); } // Vẫn cần nếu user là guest vừa đặt xong
+
+  // --- Utility Functions ---
+  function showToast_oc(message, isSuccess = true) { /* ... (Copy từ file cart.html hoặc file JS chung) ... */ }
+  function formatPrice_oc(price) { /* ... (Copy từ file cart.html hoặc file JS chung) ... */ }
+  function formatDate_oc(dateString) {
+      if (!dateString) return 'N/A';
+      try { const date = new Date(dateString); if (isNaN(date.getTime())) return 'N/A'; return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+      catch (e) { console.warn("Error formatting date:", dateString, e); return 'N/A'; }
+  }
+
+
+  // --- API Call Wrapper ---
+  async function makeApiCall_oc(url, method = 'GET', body = null, requiresAuth = true) { // Mặc định API order cần auth
+      const headers = { 'Content-Type': 'application/json' };
+      const token = getToken_oc();
+
+      if (requiresAuth) {
+          if (token) {
+              headers['Authorization'] = `Bearer ${token}`;
+          } else {
+              console.warn(`Gọi API ${url} yêu cầu xác thực nhưng không tìm thấy token.`);
+              showToast_oc('Vui lòng đăng nhập để xem thông tin đơn hàng.', false);
+              localStorage.setItem('redirectAfterLogin', window.location.href); // Lưu lại trang hiện tại
+              window.location.href = '/login';
+              return { error: 'NO_TOKEN', status: 401, ok: false, headers: new Headers(), json: async () => ({message: "Yêu cầu đăng nhập"}), text: async () => "Yêu cầu đăng nhập" };
+          }
+      }
+      // ... (Phần còn lại của makeApiCall tương tự như các file khác, xử lý response.status 401/403)
+      const config = { method: method, headers: headers };
+      if (body && (method === 'POST' || method === 'PATCH' || method === 'PUT')) {
+          config.body = JSON.stringify(body);
+      }
+      const response = await fetch(url, config);
+      if (response.status === 401 && token) { /* ... xử lý 401 ... */ throw new Error('Unauthorized');}
+      if (response.status === 403 && token) { /* ... xử lý 403 ... */ throw new Error('Forbidden');}
+      return response;
+  }
+
+  // --- Load Order Details ---
+  async function fetchOrderDetails(orderId) {
+      if (!orderId) {
+          console.error("Order ID không được cung cấp.");
+          if (confirmationLoadingMessageEl_oc) confirmationLoadingMessageEl_oc.style.display = 'none';
+          if (orderNotFoundErrorEl_oc) orderNotFoundErrorEl_oc.style.display = 'block';
+          return;
+      }
+
+      if (confirmationLoadingMessageEl_oc) confirmationLoadingMessageEl_oc.style.display = 'block';
+      if (confirmationDetailsEl_oc) confirmationDetailsEl_oc.classList.add('hidden');
+      if (orderNotFoundErrorEl_oc) orderNotFoundErrorEl_oc.style.display = 'none';
+
+      try {
+          // API GET /orders/{orderId} của bạn yêu cầu xác thực
+          const response = await makeApiCall_oc(`${API_ORDER_URL_CONF}/${orderId}`, 'GET', null, true);
+
+          if (response.error === 'NO_TOKEN') return; // makeApiCall đã xử lý
+
+          if (!response.ok) {
+              let errorMsg = `Lỗi tải đơn hàng ${orderId} (${response.status})`;
+              try {
+                  if (response.headers.get("content-type")?.includes("application/json")) {
+                      const errorData = await response.json(); errorMsg = errorData.message || errorMsg;
+                  } else { errorMsg = await response.text(); }
+              } catch (e) {}
+              throw new Error(errorMsg);
+          }
+          const responseData = await response.json(); // ResponseData<OrderResponse>
+
+          if (responseData.status === 200 && responseData.data) {
+              renderOrderConfirmation(responseData.data); // responseData.data là OrderResponse
+          } else {
+              throw new Error(responseData.message || "Không thể tải dữ liệu đơn hàng.");
+          }
+      } catch (error) {
+          if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+              console.error(`Lỗi khi tải đơn hàng ID ${orderId}:`, error);
+              showToast_oc(`Lỗi tải đơn hàng: ${error.message}`, false);
+              if (orderNotFoundErrorEl_oc) orderNotFoundErrorEl_oc.style.display = 'block';
+          }
+      } finally {
+          if (confirmationLoadingMessageEl_oc) confirmationLoadingMessageEl_oc.style.display = 'none';
+      }
+  }
+
+  function renderOrderConfirmation(orderData) {
+      if (!orderData) {
+          if (orderNotFoundErrorEl_oc) orderNotFoundErrorEl_oc.style.display = 'block';
+          return;
+      }
+      if (confirmationDetailsEl_oc) confirmationDetailsEl_oc.classList.remove('hidden');
+
+      if(confOrderIdEl) confOrderIdEl.textContent = `#${orderData.id}`;
+      if(confOrderDateEl) confOrderDateEl.textContent = formatDate_oc(orderData.createAt); // Sử dụng createAt từ OrderResponse
+      if(confOrderStatusEl) confOrderStatusEl.textContent = orderData.status || 'N/A';
+      if(confOrderTotalEl) confOrderTotalEl.textContent = formatPrice_oc(orderData.totalPrice);
+
+      if(confCustomerNameEl) confCustomerNameEl.textContent = orderData.customerName || 'N/A';
+      if(confCustomerPhoneEl) confCustomerPhoneEl.textContent = orderData.customerPhone || 'N/A';
+      if(orderData.customerEmail) {
+          if(confCustomerEmailEl) confCustomerEmailEl.textContent = orderData.customerEmail;
+          if(confCustomerEmailContainerEl) confCustomerEmailContainerEl.classList.remove('hidden');
+      } else {
+          if(confCustomerEmailContainerEl) confCustomerEmailContainerEl.classList.add('hidden');
+      }
+
+      if(orderData.shippingAddress && confShippingAddressEl) {
+          confShippingAddressEl.textContent = orderData.shippingAddress.fullAddress || 'N/A';
+      }
+      if(orderData.title) {
+          if(confOrderTitleEl) confOrderTitleEl.textContent = orderData.title;
+          if(confOrderTitleContainerEl) confOrderTitleContainerEl.classList.remove('hidden');
+      } else {
+          if(confOrderTitleContainerEl) confOrderTitleContainerEl.classList.add('hidden');
+      }
+
+
+      if (confOrderItemsContainerEl && orderData.orderDetails && orderData.orderDetails.length > 0) {
+          confOrderItemsContainerEl.innerHTML = '';
+          orderData.orderDetails.forEach(item => {
+              const itemHtml = `
+                  <tr class="border-b last:border-b-0">
+                      <td class="py-3 pr-3 flex items-center">
+                          <img src="${item.productImageUrl || 'https://placehold.co/40x40'}" alt="${item.productName}" class="w-12 h-12 object-cover rounded mr-3">
+                          <div>
+                              <p class="font-medium text-sm">${item.productName || 'N/A'}</p>
+                              <p class="text-xs text-gray-500">ID SP: ${item.productId}</p>
+                          </div>
+                      </td>
+                      <td class="py-3 text-sm text-center">${item.quantity || 0}</td>
+                      <td class="py-3 text-sm text-right">${formatPrice_oc(item.priceAtOrder)}</td>
+                      <td class="py-3 text-sm font-medium text-right">${formatPrice_oc(item.lineTotal)}</td>
+                  </tr>
+              `;
+              confOrderItemsContainerEl.insertAdjacentHTML('beforeend', itemHtml);
+          });
+      } else if (confOrderItemsContainerEl) {
+          confOrderItemsContainerEl.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-gray-500">Không có chi tiết sản phẩm.</td></tr>';
+      }
+
+      if (!getToken_oc() && viewOrderHistoryBtn_oc) { // Ẩn nút xem lịch sử nếu là guest
+          viewOrderHistoryBtn_oc.style.display = 'none';
+      }
+  }
+
+
+  // --- Cập nhật trạng thái đăng nhập trên UI Header ---
+  function updateUserAuthStatusOnHeader() { /* ... (Giữ nguyên như file checkout.html, sử dụng getLoggedInUser_oc, removeToken_oc, etc.) ... */ }
+
+  // --- Khởi tạo Trang Xác nhận Đơn hàng ---
+  document.addEventListener('DOMContentLoaded', () => {
+      userAuthStatusHeaderEl_oc = document.getElementById('userAuthStatusHeader');
+      cartItemCountHeaderEl_oc = document.getElementById('cartItemCountHeader');
+      toast_oc = document.getElementById('toast');
+      toastMessage_oc = document.getElementById('toastMessage');
+      confirmationLoadingMessageEl_oc = document.getElementById('confirmationLoadingMessage');
+      confirmationDetailsEl_oc = document.getElementById('confirmationDetails');
+      orderNotFoundErrorEl_oc = document.getElementById('orderNotFoundError');
+      confOrderIdEl = document.getElementById('confOrderId');
+      confOrderDateEl = document.getElementById('confOrderDate');
+      confOrderStatusEl = document.getElementById('confOrderStatus');
+      confOrderTotalEl = document.getElementById('confOrderTotal');
+      confCustomerNameEl = document.getElementById('confCustomerName');
+      confCustomerPhoneEl = document.getElementById('confCustomerPhone');
+      confCustomerEmailEl = document.getElementById('confCustomerEmail');
+      confCustomerEmailContainerEl = document.getElementById('confCustomerEmailContainer');
+      confShippingAddressEl = document.getElementById('confShippingAddress');
+      confOrderTitleEl = document.getElementById('confOrderTitle');
+      confOrderTitleContainerEl = document.getElementById('confOrderTitleContainer');
+      confOrderItemsContainerEl = document.getElementById('confOrderItemsContainer');
+      viewOrderHistoryBtn_oc = document.getElementById('viewOrderHistoryBtn');
+
+
+      updateUserAuthStatusOnHeader();
+      // Cập nhật số lượng giỏ hàng trên header về 0 vì đơn hàng đã được đặt
+      if(cartItemCountHeaderEl_oc) cartItemCountHeaderEl_oc.textContent = '0';
+
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const orderId = urlParams.get('orderId');
+
+      if (orderId) {
+          fetchOrderDetails(orderId);
+      } else {
+          console.error("Không tìm thấy orderId trên URL.");
+          if (confirmationLoadingMessageEl_oc) confirmationLoadingMessageEl_oc.style.display = 'none';
+          if (orderNotFoundErrorEl_oc) orderNotFoundErrorEl_oc.style.display = 'block';
+      }
+
+      // Cập nhật link cho nút xem lịch sử đơn hàng (nếu có)
+      if(viewOrderHistoryBtn_oc) {
+          viewOrderHistoryBtn_oc.href = "/my-orders"; // Hoặc đường dẫn đến trang lịch sử đơn hàng của bạn
+      }
+  });
+</script>
+</body>
+</html>

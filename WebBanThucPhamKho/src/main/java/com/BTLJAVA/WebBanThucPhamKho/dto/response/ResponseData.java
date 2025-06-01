@@ -11,4 +11,5 @@ public class ResponseData<T> {
     private Integer status;
     private String message;
     private T data;
+    private String error;
 }

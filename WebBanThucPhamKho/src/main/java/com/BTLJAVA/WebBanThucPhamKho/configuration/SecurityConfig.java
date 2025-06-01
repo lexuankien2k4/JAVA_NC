@@ -33,9 +33,12 @@ public class SecurityConfig {
             "/register",             // Trang hiển thị form đăng ký (GET -> index.html, nếu có)
             "/home",
             "/cart",
+            "/checkout",
 
             // Authentication APIs (handled by AuthController)
-            "/api/v1/auth/**",       // Bao gồm /api/v1/auth/login, /api/v1/auth/register
+            "/api/v1/auth/**",
+            "/api/v1/addresses/**",
+            "/api/v1/orders/**",// Bao gồm /api/v1/auth/login, /api/v1/auth/register
 
             // Static Resources (CSS, JS, Images)
             "/css/**",

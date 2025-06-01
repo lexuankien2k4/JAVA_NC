@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán Đơn hàng - LANCHI MART</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        .header-banner { background-color: #e30019; }
+        .form-input {
+            width: 100%; padding: 0.65rem 0.75rem; border: 1px solid #d1d5db; /* gray-300 */
+            border-radius: 0.375rem; /* rounded-md */ box-sizing: border-box;
+            font-size: 0.875rem; /* text-sm */
+        }
+        .form-input:focus {
+            outline: none; border-color: #ef4444; /* red-500 */
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); /* ring-2 ring-red-500/20 */
+        }
+        .form-label { display: block; margin-bottom: 0.25rem; font-weight: 500; color: #374151; /* gray-700 */ font-size: 0.875rem; }
+        .checkout-summary-item { display: flex; justify-content: space-between; padding: 0.5rem 0; font-size: 0.875rem; }
+        .checkout-summary-item dt { color: #4b5563; /* gray-600 */ }
+        .checkout-summary-item dd { color: #1f2937; /* gray-800 */ font-weight: 500; }
+        .toast { display: none; position: fixed; bottom: 20px; right: 20px; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 5px; padding: 16px; z-index: 1050; font-size: 17px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .toast.success { background-color: #4CAF50; }
+        .toast.error { background-color: #f44336; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+<header class="bg-white shadow-md sticky top-0 z-50">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-col md:flex-row justify-between items-center py-3">
+            <div class="flex items-center">
+                <a href="/" class="flex items-center text-2xl font-bold text-red-600">
+                    <img src="https://lanchi.vn/wp-content/uploads/2023/04/logo-lanchi-mart.svg" alt="LANCHI MART Logo" class="h-10 mr-2">
+                </a>
+            </div>
+            <div class="flex items-center space-x-3 sm:space-x-4">
+                <div id="userAuthStatusHeader" class="text-sm flex items-center">
+                    <a href="/login" class="text-gray-700 hover:text-red-600">Đăng nhập</a>
+                </div>
+                <a href="/cart" id="cartIconHeader" class="relative text-gray-700 hover:text-red-600">
+                    <i class="fas fa-shopping-cart fa-lg"></i>
+                    <span id="cartItemCountHeader" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">0</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="container mx-auto px-2 sm:px-4 mt-6 mb-8">
+    <nav class="text-sm text-gray-500 mb-4" aria-label="Breadcrumb">
+        <ol class="list-none p-0 inline-flex">
+            <li class="flex items-center"><a href="/" class="hover:text-red-600">Trang chủ</a><i class="fas fa-chevron-right fa-xs mx-2"></i></li>
+            <li class="flex items-center"><a href="/cart" class="hover:text-red-600">Giỏ hàng</a><i class="fas fa-chevron-right fa-xs mx-2"></i></li>
+            <li><span class="text-gray-700 font-semibold">Thanh toán</span></li>
+        </ol>
+    </nav>
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Thông Tin Thanh Toán</h1>
+
+    <div id="checkoutLoadingMessage" class="text-center py-10 text-gray-500">
+        <i class="fas fa-spinner fa-spin fa-2x"></i>
+        <p class="mt-2">Đang tải thông tin giỏ hàng...</p>
+    </div>
+
+    <form id="checkoutForm" class="hidden">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <div class="w-full lg:w-2/3 bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-xl font-semibold mb-4 border-b pb-3">Thông Tin Giao Hàng</h2>
+                <div id="shippingFormFields">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="customerName" class="form-label">Họ và Tên Người Nhận <span class="text-red-500">*</span></label>
+                            <input type="text" id="customerName" name="customerName" class="form-input" required>
+                        </div>
+                        <div>
+                            <label for="customerPhone" class="form-label">Số Điện Thoại <span class="text-red-500">*</span></label>
+                            <input type="tel" id="customerPhone" name="customerPhone" class="form-input" required>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="customerEmail" class="form-label">Email</label>
+                        <input type="email" id="customerEmail" name="customerEmail" class="form-input">
+                    </div>
+                    <div class="mt-4">
+                        <label for="addressNumber" class="form-label">Số Nhà <span class="text-red-500">*</span></label>
+                        <input type="text" id="addressNumber" name="addressNumber" class="form-input" required>
+                    </div>
+                    <div class="mt-4">
+                        <label for="addressStreet" class="form-label">Đường/Phố <span class="text-red-500">*</span></label>
+                        <input type="text" id="addressStreet" name="addressStreet" class="form-input" required>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <div>
+                            <label for="addressWard" class="form-label">Phường/Xã <span class="text-red-500">*</span></label>
+                            <input type="text" id="addressWard" name="addressWard" class="form-input" required>
+                        </div>
+                        <div>
+                            <label for="addressDistrict" class="form-label">Quận/Huyện <span class="text-red-500">*</span></label>
+                            <input type="text" id="addressDistrict" name="addressDistrict" class="form-input" required>
+                        </div>
+                        <div>
+                            <label for="addressCity" class="form-label">Tỉnh/Thành Phố <span class="text-red-500">*</span></label>
+                            <input type="text" id="addressCity" name="addressCity" class="form-input" required>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="orderTitle" class="form-label">Ghi Chú Đơn Hàng (Tùy chọn)</label>
+                        <textarea id="orderTitle" name="orderTitle" rows="3" class="form-input"></textarea>
+                    </div>
+                </div>
+                <div id="guestInfoMessage" class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-blue-700 text-sm hidden">
+                    Bạn đang đặt hàng với tư cách khách. <a href="/login?redirect=/checkout" id="loginLinkFromCheckout" class="font-semibold underline hover:text-blue-800">Đăng nhập</a> để sử dụng thông tin đã lưu hoặc <a href="/login" id="registerLinkFromCheckout" class="font-semibold underline hover:text-blue-800">đăng ký</a> tài khoản mới.
+                </div>
+            </div>
+
+            <div class="w-full lg:w-1/3">
+                <div class="cart-summary-card bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4 border-b pb-3">Tóm Tắt Đơn Hàng</h2>
+                    <div id="checkoutOrderSummaryItems" class="space-y-2 mb-4 max-h-60 overflow-y-auto">
+                    </div>
+                    <div class="border-t pt-4 space-y-2 text-sm">
+                        <dl class="space-y-1">
+                            <div class="checkout-summary-item"><dt>Tổng số lượng:</dt><dd id="summaryTotalQuantityCheckout">0</dd></div>
+                            <div class="checkout-summary-item"><dt>Tạm tính:</dt><dd id="summarySubtotalCheckout">0 ₫</dd></div>
+                            <div class="checkout-summary-item text-gray-500"><dt>Phí vận chuyển:</dt><dd>Miễn phí</dd></div>
+                            <div class="checkout-summary-item font-bold text-lg border-t pt-3 mt-3"><dt>Tổng Cộng:</dt><dd id="summaryGrandTotalCheckout" class="text-red-600">0 ₫</dd></div>
+                        </dl>
+                    </div>
+                    <button type="submit" id="placeOrderButton" class="mt-6 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        XÁC NHẬN ĐẶT HÀNG
+                    </button>
+                    <div id="checkoutFormMessage" class="mt-3 text-sm text-center text-red-500"></div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<footer class="bg-gray-800 text-white py-8 mt-10 text-sm">
+    <div class="container mx-auto px-4 text-center">
+        <p>&copy; 2025 LANCHI MART - Niềm tin của mọi nhà. Phát triển bởi Nhóm 17.</p>
+    </div>
+</footer>
+<div id="toast" class="toast"><span id="toastMessage"></span></div>
+
+<script>
+    // URLs API
+    const API_CART_URL = '/api/v1/cart';
+    const API_ORDER_URL = '/api/v1/orders';
+
+    // DOM Elements
+    let userAuthStatusHeaderEl, cartItemCountHeaderEl, toast, toastMessage,
+        checkoutLoadingMessageEl, checkoutFormEl,
+        checkoutOrderSummaryItemsEl, summaryTotalQuantityCheckoutEl,
+        summarySubtotalCheckoutEl, summaryGrandTotalCheckoutEl,
+        placeOrderButtonEl, checkoutFormMessageEl, guestInfoMessageEl;
+
+    // --- Quản lý Token & Guest Cart ID ---
+    function getToken() { return localStorage.getItem('accessToken'); }
+    function getGuestCartId() { return localStorage.getItem('guestCartId'); }
+    function removeToken() {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('loggedInUser');
+        console.log("Token và thông tin người dùng đã được xóa.");
+    }
+    function getLoggedInUser() {
+        const userData = localStorage.getItem('loggedInUser');
+        try { return userData ? JSON.parse(userData) : null; }
+        catch (e) { console.error("Lỗi phân tích loggedInUser từ localStorage:", e); return null; }
+    }
+    function removeGuestCartId() {
+        localStorage.removeItem('guestCartId');
+        console.log("GuestCartId đã được xóa.");
+    }
+
+    // --- Hàm Tiện ích ---
+    function showToast(message, isSuccess = true) {
+        if (!toast || !toastMessage) { console.warn("Không tìm thấy phần tử toast:", message); return; }
+        toastMessage.textContent = message;
+        toast.className = `toast ${isSuccess ? 'success' : 'error'}`;
+        toast.style.display = 'block';
+        setTimeout(() => { if(toast) toast.style.display = 'none'; }, 3000);
+    }
+    function formatPrice(price) {
+        const numericPrice = Number(price);
+        if (price == null || isNaN(numericPrice)) { return '0 ₫'; }
+        return numericPrice.toLocaleString('vi-VN') + ' ₫';
+    }
+
+    // --- Hàm Gọi API Chung ---
+    async function makeApiCall(url, method = 'GET', body = null, requiresAuth = false) {
+        const headers = { 'Content-Type': 'application/json' };
+        const token = getToken();
+
+        if (requiresAuth) {
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            } else {
+                console.warn(`Gọi API ${url} yêu cầu xác thực nhưng không tìm thấy token.`);
+                showToast('Vui lòng đăng nhập để thực hiện hành động này.', false);
+                localStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
+                window.location.href = '/login';
+                return { error: 'NO_TOKEN', status: 401, ok: false, headers: new Headers(), json: async () => ({message: "Yêu cầu đăng nhập"}), text: async () => "Yêu cầu đăng nhập" };
+            }
+        } else if (token && url.includes(API_CART_URL) && !url.endsWith('/add')) {
+             headers['Authorization'] = `Bearer ${token}`;
+        } else if (!token && url.includes(API_CART_URL) && (method === 'GET' || url.includes('/item/') || url.endsWith('/clear')) && !url.endsWith('/add')) {
+            const guestId = getGuestCartId();
+            if (guestId) {
+                 if (!url.includes('guestCartId=')) url += (url.includes('?') ? '&' : '?') + `guestCartId=${guestId}`;
+            }
+        }
+
+        const config = { method: method, headers: headers };
+        if (body && (method === 'POST' || method === 'PATCH' || method === 'PUT')) {
+            config.body = JSON.stringify(body);
+        }
+        console.log(`CheckoutPage - Calling API: ${method} ${url}`, config.body ? `with body: ${config.body.substring(0,150)}...` : '');
+        const response = await fetch(url, config);
+        console.log(`CheckoutPage - Raw response from ${url} - Status: ${response.status}, Content-Type: ${response.headers.get('Content-Type')}`);
+
+        if ((response.status === 401 || response.status === 403) && token && requiresAuth) {
+            const message = response.status === 401 ? 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.' : 'Bạn không có quyền thực hiện hành động này.';
+            showToast(message, false);
+            if (response.status === 401) {
+                removeToken(); removeGuestCartId(); updateUserAuthStatusOnHeader();
+                localStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
+                window.location.href = '/login';
+            }
+            throw new Error(response.status === 401 ? 'Unauthorized' : 'Forbidden');
+        }
+        return response;
+    }
+
+    // --- Load Cart Summary for Checkout Page ---
+    async function loadCartSummaryForCheckout() {
+        if (checkoutLoadingMessageEl) checkoutLoadingMessageEl.style.display = 'block';
+        if (checkoutFormEl) checkoutFormEl.classList.add('hidden');
+
+        const token = getToken();
+        const guestId = getGuestCartId();
+        let url = API_CART_URL;
+        let requiresAuthForGetCart = false; // GET /cart không bắt buộc auth
+
+        if (token) {
+            // makeApiCall sẽ tự động gửi token nếu url là API_CART_URL
+        } else if (guestId) {
+            // url đã được xử lý trong makeApiCall nếu không có token
+        } else {
+            console.log("CheckoutPage: No token and no guestCartId, cart is empty.");
+            renderCheckoutSummary(null);
+            if (checkoutLoadingMessageEl) checkoutLoadingMessageEl.style.display = 'none';
+            if (checkoutFormEl) checkoutFormEl.classList.remove('hidden');
+            return;
+        }
+
+        try {
+            const response = await makeApiCall(url, 'GET', null, requiresAuthForGetCart);
+            if (response.error === 'NO_TOKEN' && requiresAuthForGetCart) { renderCheckoutSummary(null); return; }
+
+            if (!response.ok) {
+                let errorMsg = `Lỗi tải tóm tắt giỏ hàng (${response.status})`;
+                try {
+                    if (response.headers.get("content-type")?.includes("application/json")) {
+                         const errorData = await response.json(); errorMsg = errorData.message || errorMsg;
+                    } else { errorMsg = await response.text(); }
+                } catch (e) {}
+                throw new Error(errorMsg);
+            }
+            const responseData = await response.json();
+            if (responseData.status === 200 && responseData.data) {
+                renderCheckoutSummary(responseData.data);
+            } else {
+                throw new Error(responseData.message || "Không thể tải dữ liệu tóm tắt giỏ hàng.");
+            }
+        } catch (error) {
+            if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+                console.error("Lỗi khi tải tóm tắt giỏ hàng:", error);
+                showToast(`Lỗi tải tóm tắt giỏ hàng: ${error.message}`, false);
+                renderCheckoutSummary(null);
+            }
+        } finally {
+            if (checkoutLoadingMessageEl) checkoutLoadingMessageEl.style.display = 'none';
+            if (checkoutFormEl) checkoutFormEl.classList.remove('hidden');
+        }
+    }
+
+    function renderCheckoutSummary(cartData) {
+        if (!checkoutOrderSummaryItemsEl || !summaryTotalQuantityCheckoutEl || !summarySubtotalCheckoutEl || !summaryGrandTotalCheckoutEl || !cartItemCountHeaderEl) {
+            console.error("Một hoặc nhiều phần tử DOM của tóm tắt đơn hàng không tìm thấy."); return;
+        }
+        console.log("CheckoutPage - Rendering checkout summary with cartData:", JSON.stringify(cartData, null, 2));
+
+        if (!cartData || !cartData.items || cartData.items.length === 0) {
+            checkoutOrderSummaryItemsEl.innerHTML = '<p class="text-gray-500 text-sm py-4 text-center">Giỏ hàng của bạn trống.</p>';
+            summaryTotalQuantityCheckoutEl.textContent = '0';
+            summarySubtotalCheckoutEl.textContent = '0 ₫';
+            summaryGrandTotalCheckoutEl.textContent = '0 ₫';
+            cartItemCountHeaderEl.textContent = '0';
+            if (placeOrderButtonEl) placeOrderButtonEl.disabled = true;
+            showToast("Giỏ hàng trống, không thể thanh toán. Vui lòng thêm sản phẩm.", false);
+            setTimeout(() => { window.location.href = '/cart'; }, 2000);
+            return;
+        }
+
+        checkoutOrderSummaryItemsEl.innerHTML = '';
+        cartData.items.forEach(item => {
+            const itemHtml = `
+                <div class="flex justify-between items-center text-sm py-1 border-b border-gray-200 last:border-b-0">
+                    <div class="flex items-center">
+                        <img src="${item.productImageUrl || 'https://placehold.co/40x40'}" alt="${item.productName}" class="w-10 h-10 object-cover rounded mr-2">
+                        <span class="truncate w-40" title="${item.productName}">${item.productName} (x${item.quantity})</span>
+                    </div>
+                    <span class="font-medium">${formatPrice(item.lineTotal)}</span>
+                </div>
+            `;
+            checkoutOrderSummaryItemsEl.insertAdjacentHTML('beforeend', itemHtml);
+        });
+
+        summaryTotalQuantityCheckoutEl.textContent = cartData.totalQuantity || 0;
+        summarySubtotalCheckoutEl.textContent = formatPrice(cartData.subtotalPrice);
+        summaryGrandTotalCheckoutEl.textContent = formatPrice(cartData.subtotalPrice);
+        cartItemCountHeaderEl.textContent = cartData.totalQuantity || 0;
+        if (placeOrderButtonEl) placeOrderButtonEl.disabled = false;
+    }
+
+    // --- Pre-fill Form for Logged-in User ---
+    function prefillShippingForm() {
+        const user = getLoggedInUser();
+        if (user && checkoutFormEl) {
+            if (document.getElementById('customerName') && (user.firstName || user.lastName)) {
+                document.getElementById('customerName').value = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+            }
+            if (document.getElementById('customerPhone') && user.phone) {
+                document.getElementById('customerPhone').value = user.phone;
+            }
+            if (document.getElementById('customerEmail') && user.email) {
+                document.getElementById('customerEmail').value = user.email;
+            }
+            if(guestInfoMessageEl) guestInfoMessageEl.classList.add('hidden');
+        } else if (guestInfoMessageEl) {
+            guestInfoMessageEl.classList.remove('hidden');
+            const loginLink = document.getElementById('loginLinkFromCheckout');
+            const registerLink = document.getElementById('registerLinkFromCheckout');
+            const redirectParam = `?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+            if(loginLink) loginLink.href = `/login${redirectParam}`;
+            if(registerLink) registerLink.href = `/login${redirectParam}`;
+        }
+    }
+
+    // --- Handle Place Order ---
+    if (checkoutFormEl) {
+        checkoutFormEl.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            if (checkoutFormMessageEl) checkoutFormMessageEl.textContent = '';
+            if (placeOrderButtonEl) { placeOrderButtonEl.disabled = true; placeOrderButtonEl.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang xử lý...'; }
+
+            const token = getToken();
+            const guestId = getGuestCartId();
+
+            // Nếu không có token (là guest), chuyển hướng đến login để họ đăng nhập/đăng ký
+            // và sau đó quay lại checkout để đặt hàng với tư cách user.
+            if (!token) {
+                showToast("Vui lòng đăng nhập để đặt hàng.", false);
+                localStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search); // Lưu lại trang checkout
+                setTimeout(() => { window.location.href = '/login'; }, 1500);
+                if (placeOrderButtonEl) { placeOrderButtonEl.disabled = false; placeOrderButtonEl.textContent = 'XÁC NHẬN ĐẶT HÀNG'; }
+                return;
+            }
+
+            const orderRequest = {
+                customerName: document.getElementById('customerName').value.trim(),
+                customerPhone: document.getElementById('customerPhone').value.trim(),
+                customerEmail: document.getElementById('customerEmail').value.trim(),
+                shippingAddress: {
+                    number: document.getElementById('addressNumber').value.trim(),
+                    street: document.getElementById('addressStreet').value.trim(),
+                    ward: document.getElementById('addressWard').value.trim(),
+                    district: document.getElementById('addressDistrict').value.trim(),
+                    city: document.getElementById('addressCity').value.trim()
+                },
+                title: document.getElementById('orderTitle').value.trim(),
+                guestCartId: null // Vì đã yêu cầu đăng nhập, guestCartId không còn cần thiết ở đây
+                                 // Logic merge cart sẽ diễn ra ở trang login
+            };
+
+            if (!orderRequest.customerName || !orderRequest.customerPhone ||
+                !orderRequest.shippingAddress.number || !orderRequest.shippingAddress.street ||
+                !orderRequest.shippingAddress.ward || !orderRequest.shippingAddress.district ||
+                !orderRequest.shippingAddress.city) {
+                showToast("Vui lòng điền đầy đủ thông tin giao hàng bắt buộc (*).", false);
+                if(checkoutFormMessageEl) checkoutFormMessageEl.textContent = "Vui lòng điền đầy đủ các trường có dấu *";
+                if (placeOrderButtonEl) { placeOrderButtonEl.disabled = false; placeOrderButtonEl.textContent = 'XÁC NHẬN ĐẶT HÀNG'; }
+                return;
+            }
+            console.log("CheckoutPage - Placing order with request:", JSON.stringify(orderRequest));
+
+            try {
+                // API đặt hàng luôn yêu cầu xác thực.
+                const response = await makeApiCall(API_ORDER_URL, 'POST', orderRequest, true);
+
+                if (response.error === 'NO_TOKEN') { // makeApiCall đã xử lý chuyển hướng
+                     if (placeOrderButtonEl) { placeOrderButtonEl.disabled = false; placeOrderButtonEl.textContent = 'XÁC NHẬN ĐẶT HÀNG'; }
+                    return;
+                }
+
+                const contentType = response.headers.get("content-type");
+                let responseData;
+
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    responseData = await response.json();
+                } else {
+                    const textResponse = await response.text();
+                    console.error("Place order response was not JSON. Status:", response.status, "Text:", textResponse.substring(0, 500));
+                    throw new Error(`Phản hồi không hợp lệ từ server (Status: ${response.status}). Chi tiết: ${textResponse.substring(0,100)}...`);
+                }
+                console.log("CheckoutPage - Place order response data (JSON):", responseData);
+
+                if (response.ok && responseData.status === 201 && responseData.data) { // Backend trả về 201 CREATED
+                    showToast("Đặt hàng thành công! Cảm ơn bạn.", true);
+                    removeGuestCartId(); // Quan trọng: Xóa guest cart ID sau khi đặt hàng thành công (nếu có từ trước)
+                    if (cartItemCountHeaderEl) cartItemCountHeaderEl.textContent = '0';
+
+                    const orderId = responseData.data.id;
+                    setTimeout(() => { window.location.href = `/order-confirmation?orderId=${orderId}`; }, 1500);
+                } else {
+                    showToast(`Lỗi đặt hàng: ${responseData.message || 'Không thành công'} (App Code: ${responseData.status || response.status})`, false);
+                    if(checkoutFormMessageEl) checkoutFormMessageEl.textContent = responseData.message || 'Lỗi không xác định.';
+                }
+            } catch (error) {
+                if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+                    console.error("Lỗi khi đặt hàng:", error);
+                    showToast(`Lỗi khi đặt hàng: ${error.message}`, false);
+                    if(checkoutFormMessageEl) checkoutFormMessageEl.textContent = error.message;
+                }
+            } finally {
+                if (placeOrderButtonEl) { placeOrderButtonEl.disabled = false; placeOrderButtonEl.textContent = 'XÁC NHẬN ĐẶT HÀNG'; }
+            }
+        });
+    }
+
+    // --- Cập nhật trạng thái đăng nhập trên UI Header ---
+    function updateUserAuthStatusOnHeader() {
+        const user = getLoggedInUser();
+        if (userAuthStatusHeaderEl) {
+            if (user && (user.userName || user.firstName)) {
+                const displayName = user.userName || `${user.firstName || ''} ${user.lastName || ''}`.trim();
+                userAuthStatusHeaderEl.innerHTML = `
+                    <span class="text-gray-700 mr-2">Chào, ${displayName}!</span>
+                    <a href="#" id="logoutLinkCheckoutPage" class="text-red-600 hover:underline font-semibold">Đăng xuất</a>
+                `;
+                const logoutLink = document.getElementById('logoutLinkCheckoutPage');
+                if (logoutLink && !logoutLink.hasLogoutListener) {
+                    logoutLink.addEventListener('click', (e) => {
+                        e.preventDefault(); removeToken(); removeGuestCartId();
+                        showToast('Bạn đã đăng xuất.', true);
+                        updateUserAuthStatusOnHeader();
+                        window.location.href = '/';
+                    });
+                    logoutLink.hasLogoutListener = true;
+                }
+            } else {
+                userAuthStatusHeaderEl.innerHTML = '<a href="/login" class="text-gray-700 hover:text-red-600 font-semibold">Đăng nhập</a>';
+            }
+        }
+    }
+
+    // --- Khởi tạo Trang Checkout ---
+    document.addEventListener('DOMContentLoaded', () => {
+        checkoutLoadingMessageEl = document.getElementById('checkoutLoadingMessage');
+        checkoutFormEl = document.getElementById('checkoutForm');
+        checkoutOrderSummaryItemsEl = document.getElementById('checkoutOrderSummaryItems');
+        summaryTotalQuantityCheckoutEl = document.getElementById('summaryTotalQuantityCheckout');
+        summarySubtotalCheckoutEl = document.getElementById('summarySubtotalCheckout');
+        summaryGrandTotalCheckoutEl = document.getElementById('summaryGrandTotalCheckout');
+        placeOrderButtonEl = document.getElementById('placeOrderButton');
+        checkoutFormMessageEl = document.getElementById('checkoutFormMessage');
+        guestInfoMessageEl = document.getElementById('guestInfoMessage');
+        cartItemCountHeaderEl = document.getElementById('cartItemCountHeader');
+        userAuthStatusHeaderEl = document.getElementById('userAuthStatusHeader');
+        toast = document.getElementById('toast');
+        toastMessage = document.getElementById('toastMessage');
+
+        updateUserAuthStatusOnHeader();
+        loadCartSummaryForCheckout();
+        prefillShippingForm();
+    });
+</script>
+</body>
+</html>

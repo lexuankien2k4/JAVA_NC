@@ -1,18 +1,23 @@
 package com.BTLJAVA.WebBanThucPhamKho.service;
 
-
-import com.BTLJAVA.WebBanThucPhamKho.dto.request.AddressRequest;
-import com.BTLJAVA.WebBanThucPhamKho.dto.request.OrderStatusUpdateRequest;
+import com.BTLJAVA.WebBanThucPhamKho.dto.request.OrderRequest;
 import com.BTLJAVA.WebBanThucPhamKho.dto.response.OrderResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface OrderService {
-    List<OrderResponse> getOrders(Integer pageNumber, Integer pageSize);
 
-    List<OrderResponse> getOrdersByUserId(Integer userId, Integer pageNumber, Integer pageSize);
+    OrderResponse placeOrder(Integer userId, OrderRequest orderRequest);
 
-    OrderResponse createOrder(Integer userId, AddressRequest addressRequest);
+    OrderResponse getOrderByIdForUser(Integer orderId, Integer userId);
 
-    OrderResponse updateStatusOder(Integer id, OrderStatusUpdateRequest orderStatusUpdateRequest);
+    List<OrderResponse> getOrderHistoryForUser(Integer userId);
+
+    OrderResponse getOrderByIdForAdmin(Integer orderId);
+
+    Page<OrderResponse> getAllOrdersForAdmin(Pageable pageable);
+
+    OrderResponse updateOrderStatusForAdmin(Integer orderId, String newStatus);
 }

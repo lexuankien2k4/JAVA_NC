@@ -14,4 +14,5 @@ public class AddressResponse {
     private String ward;
     private String district;
     private String city;
+    private String fullAddress;
 }
