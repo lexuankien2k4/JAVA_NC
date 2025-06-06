@@ -207,7 +207,8 @@
                 showToast('Vui lòng đăng nhập để thực hiện hành động này.', false);
                 localStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
                 window.location.href = '/login';
-                return { error: 'NO_TOKEN', status: 401, ok: false, headers: new Headers(), json: async () => ({message: "Yêu cầu đăng nhập"}), text: async () => "Yêu cầu đăng nhập" };
+                // Trả về một promise bị reject để dừng chuỗi .then().catch() nếu có
+                return Promise.reject({ error: 'NO_TOKEN', status: 401, ok: false, message: "Yêu cầu đăng nhập" });
             }
         } else if (token && url.includes(API_CART_URL) && !url.endsWith('/add')) {
              headers['Authorization'] = `Bearer ${token}`;
@@ -247,13 +248,9 @@
         const token = getToken();
         const guestId = getGuestCartId();
         let url = API_CART_URL;
-        let requiresAuthForGetCart = false; // GET /cart không bắt buộc auth
+        let requiresAuthForGetCart = false;
 
-        if (token) {
-            // makeApiCall sẽ tự động gửi token nếu url là API_CART_URL
-        } else if (guestId) {
-            // url đã được xử lý trong makeApiCall nếu không có token
-        } else {
+        if (!token && !guestId) {
             console.log("CheckoutPage: No token and no guestCartId, cart is empty.");
             renderCheckoutSummary(null);
             if (checkoutLoadingMessageEl) checkoutLoadingMessageEl.style.display = 'none';
@@ -263,7 +260,7 @@
 
         try {
             const response = await makeApiCall(url, 'GET', null, requiresAuthForGetCart);
-            if (response.error === 'NO_TOKEN' && requiresAuthForGetCart) { renderCheckoutSummary(null); return; }
+            if (response.error === 'NO_TOKEN') { renderCheckoutSummary(null); return; }
 
             if (!response.ok) {
                 let errorMsg = `Lỗi tải tóm tắt giỏ hàng (${response.status})`;
@@ -365,16 +362,16 @@
             const token = getToken();
             const guestId = getGuestCartId();
 
-            // Nếu không có token (là guest), chuyển hướng đến login để họ đăng nhập/đăng ký
-            // và sau đó quay lại checkout để đặt hàng với tư cách user.
+            // Nếu không có token (là guest), chuyển hướng đến login
             if (!token) {
                 showToast("Vui lòng đăng nhập để đặt hàng.", false);
-                localStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search); // Lưu lại trang checkout
+                localStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
                 setTimeout(() => { window.location.href = '/login'; }, 1500);
                 if (placeOrderButtonEl) { placeOrderButtonEl.disabled = false; placeOrderButtonEl.textContent = 'XÁC NHẬN ĐẶT HÀNG'; }
                 return;
             }
 
+            // Nếu đã có token, tiến hành đặt hàng
             const orderRequest = {
                 customerName: document.getElementById('customerName').value.trim(),
                 customerPhone: document.getElementById('customerPhone').value.trim(),
@@ -388,7 +385,6 @@
                 },
                 title: document.getElementById('orderTitle').value.trim(),
                 guestCartId: null // Vì đã yêu cầu đăng nhập, guestCartId không còn cần thiết ở đây
-                                 // Logic merge cart sẽ diễn ra ở trang login
             };
 
             if (!orderRequest.customerName || !orderRequest.customerPhone ||
@@ -406,7 +402,7 @@
                 // API đặt hàng luôn yêu cầu xác thực.
                 const response = await makeApiCall(API_ORDER_URL, 'POST', orderRequest, true);
 
-                if (response.error === 'NO_TOKEN') { // makeApiCall đã xử lý chuyển hướng
+                if (response.error === 'NO_TOKEN') {
                      if (placeOrderButtonEl) { placeOrderButtonEl.disabled = false; placeOrderButtonEl.textContent = 'XÁC NHẬN ĐẶT HÀNG'; }
                     return;
                 }
@@ -423,9 +419,9 @@
                 }
                 console.log("CheckoutPage - Place order response data (JSON):", responseData);
 
-                if (response.ok && responseData.status === 201 && responseData.data) { // Backend trả về 201 CREATED
+                if (response.ok && responseData.status === 201 && responseData.data) {
                     showToast("Đặt hàng thành công! Cảm ơn bạn.", true);
-                    removeGuestCartId(); // Quan trọng: Xóa guest cart ID sau khi đặt hàng thành công (nếu có từ trước)
+                    removeGuestCartId(); // Xóa guest cart ID (nếu có từ trước khi login và merge)
                     if (cartItemCountHeaderEl) cartItemCountHeaderEl.textContent = '0';
 
                     const orderId = responseData.data.id;

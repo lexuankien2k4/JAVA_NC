@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="/css/qlsp.css"> <!-- Đảm bảo đường dẫn này đúng -->
+  <title>Quản trị viên - Quản lý Đơn hàng</title>
+  <style>
+    /* CSS for Modal */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+    .modal-content { background-color: #fefefe; margin: 5% auto; padding: 25px; border: 1px solid #888; width: 90%; max-width: 700px; border-radius: 8px; position: relative; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19); }
+    .close-button { color: #aaa; font-size: 28px; font-weight: bold; position: absolute; top: 10px; right: 20px; cursor: pointer; }
+    .close-button:hover, .close-button:focus { color: black; text-decoration: none; }
+
+    .toast { display: none; position: fixed; bottom: 20px; right: 20px; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 5px; padding: 16px; z-index: 1050; font-size: 17px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+    .toast.success { background-color: #4CAF50; }
+    .toast.error { background-color: #f44336; }
+
+    #orderTable { table-layout: auto; width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
+    #orderTable td, #orderTable th { padding: 10px 8px; border: 1px solid #ddd; text-align: left; word-wrap: break-word; }
+    #orderTable th { background-color: #f2f2f2; font-weight: bold; }
+    .action-buttons button, .action-buttons select { margin: 0 2px; padding: 5px 8px; font-size: 0.9em; border-radius: 4px; border: 1px solid #ccc; cursor: pointer;}
+    .action-buttons .view-details-btn { background-color: #2196F3; color:white; border:none;}
+    .pagination-controls { padding: 15px 0; text-align: center; }
+    .pagination-controls button { padding: 8px 12px; margin: 0 5px; border: 1px solid #ddd; background-color: #f9f9f9; cursor: pointer; border-radius: 4px; color: #333; }
+    .pagination-controls button:hover:not(:disabled) { background-color: #e9e9e9; }
+    .pagination-controls button:disabled { background-color: #eee; color: #aaa; cursor: not-allowed; }
+    .order-detail-item { display: flex; justify-content: space-between; padding: 0.25rem 0; border-bottom: 1px dashed #eee; }
+    .order-detail-item:last-child { border-bottom: none; }
+     .filter-container { margin-bottom: 1rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+    .filter-container input[type="text"], .filter-container select {
+        padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem;
+    }
+    .filter-container button {
+        padding: 0.5rem 1rem; background-color: #007bff; color: white;
+        border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;
+    }
+    .filter-container button:hover { background-color: #0056b3; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <aside>
+    <div class="toggle">
+      <div class="logo">
+        <img src="https://cdn-001.haui.edu.vn//img/logo-haui-size.png" alt="Logo HAUI">
+        <h2>NHÓM 17</h2>
+      </div>
+      <div class="close" id="close-btn-sidebar-order">
+        <span class="material-icons-sharp">close</span>
+      </div>
+    </div>
+    <div class="sidebar">
+      <a href="/admin/dashboard">
+        <span class="material-icons-sharp">dashboard</span>
+        <h3>Dashboard</h3>
+      </a>
+      <a href="/admin/manage-orders" class="active">
+        <span class="material-icons-sharp">inventory</span>
+        <h3>Quản lý đơn hàng</h3>
+      </a>
+      <a href="/admin/manage-products">
+        <span class="material-icons-sharp">production_quantity_limits</span>
+        <h3>Quản lý sản phẩm</h3>
+      </a>
+      <a href="#">
+        <span class="material-icons-sharp">segment</span>
+        <h3>Quản lý danh mục</h3>
+      </a>
+      <a href="/admin/manage-customer">
+        <span class="material-icons-sharp">people</span>
+        <h3>Khách hàng</h3>
+      </a>
+      <a href="#" id="logoutButtonOrderPage">
+        <span class="material-icons-sharp">logout</span>
+        <h3>Logout</h3>
+      </a>
+    </div>
+  </aside>
+
+  <main>
+    <div id="order-management-content">
+      <div class="main-nemu"> <h1>QUẢN LÝ ĐƠN HÀNG</h1>
+        <div class="nav">
+          <button id="menu-btn-sidebar-order">
+            <span class="material-icons-sharp">menu</span>
+          </button>
+          <div class="dark-mode">
+            <span class="material-icons-sharp active">light_mode</span>
+            <span class="material-icons-sharp">dark_mode</span>
+          </div>
+          <div class="profile">
+            <div class="info">
+              <p>Hey, <b id="adminNameDisplay">Admin</b></p>
+              <small class="text-muted">Quản trị viên</small>
+            </div>
+            <div class="profile-photo">
+              <a href="#"> <img src="https://placehold.co/40x40/EFEFEF/AAAAAA&text=AVT" alt="Ảnh đại diện"></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard">
+        <div class="table-container bg-white p-6 rounded-lg shadow-lg">
+          <h2 class="text-xl font-semibold mb-4">Danh Sách Đơn Hàng</h2>
+          <div class="filter-container">
+            <input type="text" id="searchOrderInput" placeholder="Tìm Mã ĐH, Tên, SĐT..." class="flex-grow md:flex-grow-0 md:w-1/3">
+            <select id="filterOrderStatus" class="p-2 border rounded">
+              <option value="">Tất cả trạng thái</option>
+              <option value="PENDING">Chờ xử lý</option>
+              <option value="PROCESSING">Đang xử lý</option>
+              <option value="SHIPPED">Đã giao</option>
+              <option value="DELIVERED">Hoàn thành</option>
+              <option value="CANCELLED">Đã hủy</option>
+              <option value="FAILED">Thất bại</option>
+            </select>
+            <button id="applyOrderFiltersBtn"><i class="fas fa-filter"></i> Lọc/Tìm</button>
+          </div>
+          <table id="orderTable">
+            <thead>
+            <tr>
+              <th>Mã ĐH</th>
+              <th>Khách Hàng</th>
+              <th>Số Điện Thoại</th>
+              <th class="text-right">Tổng Tiền</th>
+              <th>Ngày Đặt</th>
+              <th>Trạng Thái</th>
+              <th class="text-center">Hành Động</th>
+            </tr>
+            </thead>
+            <tbody id="orderTableBody">
+            <!-- Dữ liệu đơn hàng sẽ được render ở đây -->
+            </tbody>
+          </table>
+          <div class="pagination-controls">
+            <button id="prevOrderPageButton" disabled>Trang Trước</button>
+            <span id="currentOrderPageDisplay">Trang: 1 / 1</span>
+            <button id="nextOrderPageButton" disabled>Trang Sau</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Order Details Modal -->
+<div id="orderDetailsModal" class="modal">
+  <div class="modal-content">
+    <span class="close-button" id="closeOrderDetailsModalBtn">&times;</span>
+    <h2 id="orderDetailsModalTitle" class="text-2xl font-semibold mb-4">Chi Tiết Đơn Hàng #<span id="modalOrderId"></span></h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 mb-4 text-sm">
+      <div><strong>Khách hàng:</strong> <span id="modalCustomerName"></span></div>
+      <div><strong>Số điện thoại:</strong> <span id="modalCustomerPhone"></span></div>
+      <div class="md:col-span-2" id="modalCustomerEmailContainer"><strong>Email:</strong> <span id="modalCustomerEmail"></span></div>
+      <div class="md:col-span-2"><strong>Địa chỉ giao hàng:</strong> <span id="modalShippingAddress"></span></div>
+      <div><strong>Ngày đặt:</strong> <span id="modalOrderDate"></span></div>
+      <div><strong>Tổng tiền:</strong> <span id="modalOrderTotal" class="font-bold text-red-600"></span></div>
+      <div class="md:col-span-2" id="modalOrderTitleContainer"><strong>Ghi chú:</strong> <span id="modalOrderNotes" class="italic text-gray-600"></span></div>
+    </div>
+    <h3 class="text-lg font-semibold mt-6 mb-2 border-t pt-3">Chi Tiết Sản Phẩm:</h3>
+    <div id="modalOrderItemsContainer" class="space-y-2 max-h-60 overflow-y-auto border rounded p-2">
+      <!-- Chi tiết sản phẩm trong đơn hàng -->
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"><span id="toastMessage"></span></div>
+
+<script>
+  // URLs API
+  const API_ORDER_ADMIN_URL = '/api/v1/orders/admin';
+
+  // DOM Elements
+  let orderTableBodyEl, prevOrderPageButtonEl, nextOrderPageButtonEl, currentOrderPageDisplayEl,
+      adminNameDisplayEl, logoutButtonOrderPageEl,
+      orderDetailsModalEl, closeOrderDetailsModalBtnEl, modalOrderIdEl, modalCustomerNameEl,
+      modalCustomerPhoneEl, modalCustomerEmailEl, modalCustomerEmailContainerEl,
+      modalShippingAddressEl, modalOrderDateEl, modalOrderTotalEl,
+      modalOrderNotesEl, modalOrderTitleContainerEl, modalOrderItemsContainerEl,
+      toastEl, toastMessageEl,
+      searchOrderInputEl, filterOrderStatusEl, applyOrderFiltersBtnEl;
+
+  // Trạng thái
+  let currentOrderPage = 0;
+  const orderPageSize = 10;
+  let currentOrderSortField = 'createAt';
+  let currentOrderSortDir = 'desc';
+  let currentOrderSearchKeyword = '';
+  let currentFilterOrderStatus = '';
+
+  // --- Quản lý Token & User ---
+  function getToken_om() { return localStorage.getItem('accessToken'); }
+  function removeToken_om() {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('loggedInUser');
+      console.log("AdminOrderPage - Tokens and user info removed.");
+  }
+  function getLoggedInUser_om() {
+      const u = localStorage.getItem('loggedInUser');
+      try { return u ? JSON.parse(u) : null; }
+      catch(e) { console.error("Error parsing loggedInUser_om", e); return null; }
+  }
+
+  // --- Hàm Tiện ích ---
+  function showToast_om(message, isSuccess = true) {
+      if (!toastEl || !toastMessageEl) { console.warn("Toast elements not found for:", message); return;}
+      toastMessageEl.textContent = message;
+      toastEl.className = `toast ${isSuccess ? 'success' : 'error'}`;
+      toastEl.style.display = 'block';
+      setTimeout(() => { if(toastEl) toastEl.style.display = 'none'; }, 3000);
+  }
+  function formatPrice_om(price) {
+      const numPrice = Number(price);
+      if(price == null || isNaN(numPrice)) return '0 ₫';
+      return numPrice.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+  }
+  function formatDate_om(dateString) {
+      if (!dateString) return 'N/A';
+      try { const d = new Date(dateString); return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`; }
+      catch(e) { console.warn("AdminOrderPage - Error formatting date:", dateString, e); return 'N/A'; }
+  }
+
+  // --- Hàm Gọi API Chung ---
+  async function makeApiCall_om(url, method = 'GET', body = null) { // Bỏ tham số requiresAuth, mặc định là true
+      const headers = { 'Content-Type': 'application/json' };
+      const token = getToken_om();
+
+      if (!token || token.trim() === "") { // Luôn kiểm tra token cho trang admin
+          console.error(`AdminOrderPage - makeApiCall_om: Auth required but NO VALID TOKEN for URL ${url}. Redirecting to login.`);
+          showToast_om('Phiên làm việc hết hạn hoặc không hợp lệ. Vui lòng đăng nhập lại.', false);
+          window.location.href = '/login'; // Đường dẫn controller login của bạn
+          throw new Error('NO_VALID_TOKEN_REDIRECTING'); // Ném lỗi để dừng thực thi
+      }
+      headers['Authorization'] = `Bearer ${token}`;
+
+      const config = { method, headers };
+      if (body && (method === 'POST' || method === 'PATCH' || method === 'PUT')) {
+          config.body = JSON.stringify(body);
+      }
+      console.log(`AdminOrderPage - Calling API: ${method} ${url}`, body ? `with body: ${JSON.stringify(body).substring(0,100)}...` : '');
+
+      try {
+          const response = await fetch(url, config);
+          console.log(`AdminOrderPage - Raw response from ${method} ${url} - Status: ${response.status}, Content-Type: ${response.headers.get('Content-Type')}`);
+
+         if (response.status === 401 || response.status === 403) { // THIS BLOCK IS COMMENTED
+            const message = response.status === 401 ? 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn (401).' : 'Bạn không có quyền truy cập (403).';
+             console.error(`AdminOrderPage - makeApiCall_om: ${message} for URL ${url}. Redirecting to login.`);
+             showToast_om(message + " Vui lòng đăng nhập lại.", false);
+             removeToken_om();
+             updateUserAuthStatusOnHeader_om();
+             window.location.href = '/login';
+             throw new Error(response.status === 401 ? 'Unauthorized' : 'Forbidden');
+         }
+         return response;
+      } catch (networkError) {
+          console.error(`AdminOrderPage - makeApiCall_om: Network error or fetch failed for URL ${url}:`, networkError);
+          showToast_om(`Lỗi mạng khi gọi API: ${networkError.message}`, false);
+          throw networkError;
+      }
+  }
+
+  // --- Tải và Hiển thị Đơn hàng ---
+  async function fetchOrders(page = 0, keyword = '', status = '', sortField = 'createAt', sortDir = 'desc') {
+      console.log(`AdminOrderPage - fetchOrders called: page=${page}, keyword='${keyword}', status='${status}'`);
+      currentOrderPage = page;
+      currentOrderSearchKeyword = keyword.trim();
+      currentFilterOrderStatus = status;
+      currentOrderSortField = sortField;
+      currentOrderSortDir = sortDir;
+
+      if (!orderTableBodyEl) { console.error("AdminOrderPage - fetchOrders: orderTableBodyEl not found!"); return; }
+      orderTableBodyEl.innerHTML = `<tr><td colspan="7" class="text-center py-4">Đang tải đơn hàng...</td></tr>`;
+
+      let url = `${API_ORDER_ADMIN_URL}/all?page=${page}&size=${orderPageSize}&sort=${sortField},${sortDir}`;
+      if (currentOrderSearchKeyword) url += `&keyword=${encodeURIComponent(currentOrderSearchKeyword)}`;
+      if (currentFilterOrderStatus) url += `&status=${encodeURIComponent(currentFilterOrderStatus)}`;
+
+      try {
+          const response = await makeApiCall_om(url, 'GET');
+          if (!response.ok) {
+              let errorMsg = `Lỗi tải đơn hàng từ server (HTTP ${response.status})`;
+              try {
+                  if (response.headers.get("content-type")?.includes("application/json")) {
+                      const errorData = await response.json(); errorMsg = errorData.message || errorMsg;
+                  } else { errorMsg = await response.text() || errorMsg; }
+              } catch (e) {}
+              throw new Error(errorMsg);
+          }
+          const responseData = await response.json();
+
+          if (responseData.status === 200 && responseData.data && responseData.data.content) {
+              renderOrdersTable(responseData.data.content);
+              updateOrderPaginationControls(responseData.data);
+          } else {
+              throw new Error(responseData.message || "Không thể tải danh sách đơn hàng.");
+          }
+      } catch (error) {
+          if (error.message !== 'NO_VALID_TOKEN_REDIRECTING' && error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+              console.error("AdminOrderPage - fetchOrders: Critical error:", error);
+              showToast_om(`Lỗi tải đơn hàng: ${error.message}`, false);
+              if (orderTableBodyEl) orderTableBodyEl.innerHTML = `<tr><td colspan="7" class="text-center py-4">Lỗi tải dữ liệu.</td></tr>`;
+              updateOrderPaginationControls({ number: 0, totalPages: 1, first: true, last: true });
+          }
+      }
+  }
+
+  function renderOrdersTable(orders) {
+      if (!orderTableBodyEl) { console.error("AdminOrderPage - renderOrdersTable: orderTableBodyEl is null!"); return; }
+      orderTableBodyEl.innerHTML = '';
+      if (!orders || orders.length === 0) {
+          console.log("AdminOrderPage - renderOrdersTable: No orders to display.");
+          orderTableBodyEl.innerHTML = `<tr><td colspan="7" class="text-center py-4">Không có đơn hàng nào khớp với tiêu chí tìm kiếm.</td></tr>`;
+          return;
+      }
+      console.log(`AdminOrderPage - renderOrdersTable: Rendering ${orders.length} orders.`);
+      orders.forEach(order => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+              <td>#${order.id}</td>
+              <td>${order.customerName || 'N/A'}</td>
+              <td>${order.customerPhone || 'N/A'}</td>
+              <td class="text-right">${formatPrice_om(order.totalPrice)}</td>
+              <td>${formatDate_om(order.createAt)}</td>
+              <td>
+                  <select class="status-dropdown p-1 border rounded text-xs bg-white" data-order-id="${order.id}">
+                      <option value="PENDING" ${order.status === 'PENDING' ? 'selected' : ''}>Chờ xử lý</option>
+                      <option value="PROCESSING" ${order.status === 'PROCESSING' ? 'selected' : ''}>Đang xử lý</option>
+                      <option value="SHIPPED" ${order.status === 'SHIPPED' ? 'selected' : ''}>Đã giao</option>
+                      <option value="DELIVERED" ${order.status === 'DELIVERED' ? 'selected' : ''}>Hoàn thành</option>
+                      <option value="CANCELLED" ${order.status === 'CANCELLED' ? 'selected' : ''}>Đã hủy</option>
+                      <option value="FAILED" ${order.status === 'FAILED' ? 'selected' : ''}>Thất bại</option>
+                  </select>
+              </td>
+              <td class="action-buttons text-center">
+                  <button class="view-details-btn" data-order-id="${order.id}" title="Xem chi tiết"><i class="fas fa-eye"></i></button>
+              </td>
+          `;
+          const statusDropdown = row.querySelector('.status-dropdown');
+          if (statusDropdown) {
+            statusDropdown.addEventListener('change', (event) => handleStatusChange(event.target.dataset.orderId, event.target.value));
+          }
+          const viewDetailsBtn = row.querySelector('.view-details-btn');
+          if (viewDetailsBtn) {
+            viewDetailsBtn.addEventListener('click', (event) => viewOrderDetails(event.currentTarget.dataset.orderId));
+          }
+          orderTableBodyEl.appendChild(row);
+      });
+  }
+
+  function updateOrderPaginationControls(pageData) {
+      if (!currentOrderPageDisplayEl || !prevOrderPageButtonEl || !nextOrderPageButtonEl) { console.warn("AdminOrderPage - Pagination control elements not all found."); return; }
+      currentOrderPageDisplayEl.textContent = `Trang: ${(pageData.number || 0) + 1} / ${pageData.totalPages || 1}`;
+      prevOrderPageButtonEl.disabled = pageData.first;
+      nextOrderPageButtonEl.disabled = pageData.last;
+      console.log("AdminOrderPage - Pagination controls updated.");
+  }
+
+  async function handleStatusChange(orderId, newStatus) {
+      console.log(`AdminOrderPage - handleStatusChange: orderId=${orderId}, newStatus=${newStatus}`);
+      showToast_om(`Đang cập nhật trạng thái cho đơn #${orderId}...`, true);
+      try {
+          const response = await makeApiCall_om(`${API_ORDER_ADMIN_URL}/${orderId}/status`, 'PATCH', { newStatus: newStatus });
+          if (!response.ok) {
+              let errorMsg = `Lỗi cập nhật trạng thái (HTTP ${response.status})`;
+              try {
+                  if (response.headers.get("content-type")?.includes("application/json")) {
+                      const errorData = await response.json(); errorMsg = errorData.message || errorMsg;
+                  } else { errorMsg = await response.text() || errorMsg; }
+              } catch (e) {}
+              throw new Error(errorMsg);
+          }
+          const responseData = await response.json();
+          if (responseData.status === 200) {
+              showToast_om(`Đã cập nhật trạng thái đơn hàng #${orderId}.`, true);
+          } else {
+              showToast_om(`Lỗi từ server: ${responseData.message || 'Không thể cập nhật trạng thái.'}`, false);
+              fetchOrders(currentOrderPage, currentOrderSearchKeyword, currentFilterOrderStatus, currentOrderSortField, currentOrderSortDir);
+          }
+      } catch (error) {
+           if (error.message !== 'NO_VALID_TOKEN_REDIRECTING' && error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+              console.error("AdminOrderPage - Error updating order status:", error);
+              showToast_om(`Lỗi cập nhật trạng thái: ${error.message}`, false);
+              fetchOrders(currentOrderPage, currentOrderSearchKeyword, currentFilterOrderStatus, currentOrderSortField, currentOrderSortDir);
+          }
+      }
+  }
+
+  async function viewOrderDetails(orderId) {
+      console.log("AdminOrderPage - viewOrderDetails called for order ID:", orderId);
+      if (!orderDetailsModalEl || !modalOrderIdEl || !modalCustomerNameEl || !modalCustomerPhoneEl || !modalCustomerEmailEl || !modalCustomerEmailContainerEl || !modalShippingAddressEl || !modalOrderDateEl || !modalOrderTotalEl || !modalOrderNotesEl || !modalOrderTitleContainerEl || !modalOrderItemsContainerEl) {
+          console.error("AdminOrderPage - viewOrderDetails: Modal elements not found!");
+          showToast_om("Lỗi giao diện: không thể hiển thị chi tiết đơn hàng.", false);
+          return;
+      }
+      try {
+          const response = await makeApiCall_om(`${API_ORDER_ADMIN_URL}/${orderId}`, 'GET');
+          if (!response.ok) {
+              let errorMsg = `Lỗi tải chi tiết (${response.status})`;
+               try {
+                  if (response.headers.get("content-type")?.includes("application/json")) {
+                      const errorData = await response.json(); errorMsg = errorData.message || errorMsg;
+                  } else { errorMsg = await response.text() || errorMsg; }
+              } catch (e) {}
+              throw new Error(errorMsg);
+          }
+          const responseData = await response.json();
+          if (responseData.status === 200 && responseData.data) {
+              const order = responseData.data;
+              modalOrderIdEl.textContent = order.id;
+              modalCustomerNameEl.textContent = order.customerName || 'N/A';
+              modalCustomerPhoneEl.textContent = order.customerPhone || 'N/A';
+              if (order.customerEmail) {
+                  modalCustomerEmailEl.textContent = order.customerEmail;
+                  if(modalCustomerEmailContainerEl) modalCustomerEmailContainerEl.style.display = 'block';
+              } else {
+                  if(modalCustomerEmailContainerEl) modalCustomerEmailContainerEl.style.display = 'none';
+              }
+              if(modalShippingAddressEl) modalShippingAddressEl.textContent = order.shippingAddress?.fullAddress || 'N/A';
+              if(modalOrderDateEl) modalOrderDateEl.textContent = formatDate_om(order.createAt);
+              if(modalOrderTotalEl) modalOrderTotalEl.textContent = formatPrice_om(order.totalPrice);
+
+              if (order.title) {
+                  if(modalOrderNotesEl) modalOrderNotesEl.textContent = order.title;
+              } else {
+                  if(modalOrderNotesEl) modalOrderNotesEl.textContent = 'Không có ghi chú.';
+              }
+              if(modalOrderTitleContainerEl) modalOrderTitleContainerEl.style.display = 'block';
+
+              if(modalOrderItemsContainerEl) modalOrderItemsContainerEl.innerHTML = '';
+              if (order.orderDetails && order.orderDetails.length > 0) {
+                  order.orderDetails.forEach(item => {
+                      const itemHtml = `
+                          <div class="order-detail-item text-sm">
+                              <div class="flex items-center">
+                                  <img src="${item.productImageUrl || 'https://placehold.co/30x30/EFEFEF/AAAAAA&text=Img'}" alt="${item.productName || 'Sản phẩm'}" class="w-8 h-8 object-cover rounded mr-2">
+                                  <span>${item.productName || 'N/A'} (x${item.quantity || 0})</span>
+                              </div>
+                              <span class="font-medium">${formatPrice_om(item.lineTotal)}</span>
+                          </div>
+                      `;
+                      if(modalOrderItemsContainerEl) modalOrderItemsContainerEl.insertAdjacentHTML('beforeend', itemHtml);
+                  });
+              } else {
+                  if(modalOrderItemsContainerEl) modalOrderItemsContainerEl.innerHTML = '<p class="text-sm text-gray-500">Không có sản phẩm chi tiết.</p>';
+              }
+              if(orderDetailsModalEl) orderDetailsModalEl.style.display = 'block';
+              console.log("AdminOrderPage - Order details displayed in modal.");
+          } else {
+              showToast_om(`Lỗi: ${responseData.message || 'Không thể tải chi tiết đơn hàng.'}`, false);
+          }
+      } catch (error) {
+          if (error.message !== 'NO_VALID_TOKEN_REDIRECTING' && error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+              console.error("AdminOrderPage - Error viewing order details:", error);
+              showToast_om(`Lỗi xem chi tiết đơn hàng: ${error.message}`, false);
+          }
+      }
+  }
+
+  // --- Cập nhật trạng thái đăng nhập trên UI Header ---
+  function updateUserAuthStatusOnHeader_om() {
+      const user = getLoggedInUser_om();
+      if (adminNameDisplayEl) {
+          if (user && (user.userName || user.firstName)) {
+              adminNameDisplayEl.textContent = user.userName || `${user.firstName || ''} ${user.lastName || ''}`.trim();
+          } else {
+              adminNameDisplayEl.textContent = "Admin";
+          }
+      }
+  }
+
+  // --- Khởi tạo ---
+  document.addEventListener('DOMContentLoaded', () => {
+      console.log("AdminOrderPage - DOMContentLoaded event fired.");
+      orderTableBodyEl = document.getElementById('orderTableBody');
+      prevOrderPageButtonEl = document.getElementById('prevOrderPageButton');
+      nextOrderPageButtonEl = document.getElementById('nextOrderPageButton');
+      currentOrderPageDisplayEl = document.getElementById('currentOrderPageDisplay');
+      adminNameDisplayEl = document.getElementById('adminNameDisplay');
+      logoutButtonOrderPageEl = document.getElementById('logoutButtonOrderPage');
+      orderDetailsModalEl = document.getElementById('orderDetailsModal');
+      closeOrderDetailsModalBtnEl = document.getElementById('closeOrderDetailsModalBtn');
+      modalOrderIdEl = document.getElementById('modalOrderId');
+      modalCustomerNameEl = document.getElementById('modalCustomerName');
+      modalCustomerPhoneEl = document.getElementById('modalCustomerPhone');
+      modalCustomerEmailEl = document.getElementById('modalCustomerEmail');
+      modalCustomerEmailContainerEl = document.getElementById('modalCustomerEmailContainer');
+      modalShippingAddressEl = document.getElementById('modalShippingAddress');
+      modalOrderDateEl = document.getElementById('modalOrderDate');
+      modalOrderTotalEl = document.getElementById('modalOrderTotal');
+      modalOrderNotesEl = document.getElementById('modalOrderNotes');
+      modalOrderTitleContainerEl = document.getElementById('modalOrderTitleContainer');
+      modalOrderItemsContainerEl = document.getElementById('modalOrderItemsContainer');
+      toastEl = document.getElementById('toast');
+      toastMessageEl = document.getElementById('toastMessage');
+      searchOrderInputEl = document.getElementById('searchOrderInput');
+      filterOrderStatusEl = document.getElementById('filterOrderStatus');
+      applyOrderFiltersBtnEl = document.getElementById('applyOrderFiltersBtn');
+
+      toast = toastEl;
+      toastMessage = toastMessageEl;
+
+      updateUserAuthStatusOnHeader_om();
+
+      const initialToken = getToken_om();
+      if (!initialToken || initialToken.trim() === "") {
+          console.error("AdminOrderPage - DOMContentLoaded: No valid token found. Redirecting to login.");
+          showToast_om("Phiên làm việc không hợp lệ. Vui lòng đăng nhập.", false);
+          setTimeout(() => { window.location.href = '/login'; }, 50);
+          return;
+      }
+
+      if(closeOrderDetailsModalBtnEl) closeOrderDetailsModalBtnEl.onclick = () => { if(orderDetailsModalEl) orderDetailsModalEl.style.display = 'none'; };
+      window.addEventListener('click', (event) => { if (event.target == orderDetailsModalEl) { if(orderDetailsModalEl) orderDetailsModalEl.style.display = 'none'; } });
+      if(prevOrderPageButtonEl) prevOrderPageButtonEl.addEventListener('click', () => { if(!prevOrderPageButtonEl.disabled) fetchOrders(currentOrderPage - 1, currentOrderSearchKeyword, currentFilterOrderStatus, currentOrderSortField, currentOrderSortDir); });
+      if(nextOrderPageButtonEl) nextOrderPageButtonEl.addEventListener('click', () => { if(!nextOrderPageButtonEl.disabled) fetchOrders(currentOrderPage + 1, currentOrderSearchKeyword, currentFilterOrderStatus, currentOrderSortField, currentOrderSortDir); });
+      if(logoutButtonOrderPageEl) {
+          logoutButtonOrderPageEl.addEventListener('click', (e) => {
+              e.preventDefault(); removeToken_om();
+              showToast_om('Bạn đã đăng xuất.', true);
+              updateUserAuthStatusOnHeader_om();
+              setTimeout(() => { window.location.href = '/login'; }, 1500);
+          });
+      }
+      if(applyOrderFiltersBtnEl && searchOrderInputEl && filterOrderStatusEl) {
+          applyOrderFiltersBtnEl.addEventListener('click', () => {
+              fetchOrders(0, searchOrderInputEl.value, filterOrderStatusEl.value, currentOrderSortField, currentOrderSortDir);
+          });
+      }
+       if(searchOrderInputEl && filterOrderStatusEl) {
+          searchOrderInputEl.addEventListener('keypress', (event) => {
+              if (event.key === 'Enter') {
+                  event.preventDefault();
+                  fetchOrders(0, searchOrderInputEl.value, filterOrderStatusEl.value, currentOrderSortField, currentOrderSortDir);
+              }
+          });
+          filterOrderStatusEl.addEventListener('change', () => {
+               fetchOrders(0, searchOrderInputEl.value, filterOrderStatusEl.value, currentOrderSortField, currentOrderSortDir);
+          });
+      }
+
+      fetchOrders(currentOrderPage, currentOrderSearchKeyword, currentFilterOrderStatus, currentOrderSortField, currentOrderSortDir);
+
+      const menuBtnSidebar = document.getElementById('menu-btn-sidebar-order');
+      const closeBtnSidebar = document.getElementById('close-btn-sidebar-order');
+      const sidebar = document.querySelector('aside');
+      if (menuBtnSidebar && sidebar) menuBtnSidebar.addEventListener('click', () => { sidebar.style.display = 'block'; });
+      if (closeBtnSidebar && sidebar) closeBtnSidebar.addEventListener('click', () => { sidebar.style.display = 'none'; });
+      const darkModeToggle = document.querySelector('.dark-mode');
+      if (darkModeToggle) { /* ... (giữ nguyên) ... */ }
+      console.log("AdminOrderPage - DOMContentLoaded finished executing.");
+  });
+</script>
+</body>
+</html>

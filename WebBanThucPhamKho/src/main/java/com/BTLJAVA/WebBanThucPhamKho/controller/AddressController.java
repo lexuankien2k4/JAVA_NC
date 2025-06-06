@@ -30,14 +30,11 @@ public class AddressController {
      * @return ResponseData chứa AddressResponse.
      */
     @GetMapping("/{addressId}")
-    // Ví dụ phân quyền: Chỉ Admin hoặc người dùng liên quan (thông qua một service kiểm tra phức tạp hơn) mới được xem
-    // @PreAuthorize("hasAuthority('ADMIN') or @customSecurityService.canAccessAddress(authentication, #addressId)")
+    // @PreAuthorize("hasAuthority('ADMIN')
     public ResponseData<AddressResponse> getAddressById(@PathVariable Integer addressId) {
         log.info("CONTROLLER - API GET /addresses/{} - getAddressById called", addressId);
         try {
             AddressResponse addressResponse = addressService.getAddressResponseById(addressId);
-            // Service nên ném EntityNotFoundException nếu không tìm thấy
-            // Việc kiểm tra null ở đây là một lớp phòng thủ bổ sung.
             if (addressResponse == null) {
                 log.warn("CONTROLLER - getAddressById - Service returned null for ID: {}. This should ideally be an exception from service.", addressId);
                 return ResponseData.<AddressResponse>builder()

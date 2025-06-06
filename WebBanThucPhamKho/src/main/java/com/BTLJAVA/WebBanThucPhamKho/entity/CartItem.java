@@ -31,5 +31,4 @@ public class CartItem extends AbstractEntity<Long> {
     @Column(name = "guest_cart_id", length = 36) // UUID là 36 ký tự
     private String guestCartId; // Dùng để định danh giỏ hàng của khách vãng lai
 
-    // Có thể thêm trường isGuestItem để dễ phân biệt, hoặc dựa vào userId == null
 }

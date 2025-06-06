@@ -46,6 +46,18 @@ public class UiController {
         return "order-confirmation";
 
     }
+    @GetMapping("/admin/order-management")
+    public String showOrderManagementPage() {
+        return "quanlydonhang";
+
+    }
+    @GetMapping("/admin/statistics")
+    public String showStatisticstPage() {
+        return "thongke";
+
+    }
+
+
 
 
 

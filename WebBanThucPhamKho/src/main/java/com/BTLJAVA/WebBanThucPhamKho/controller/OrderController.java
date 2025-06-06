@@ -159,7 +159,7 @@ public class OrderController {
     }
 
     // --- Admin Endpoints ---
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/all")
     public ResponseData<Page<OrderResponse>> getAllOrdersForAdmin(
             @RequestParam(defaultValue = "0") int page,
@@ -183,7 +183,7 @@ public class OrderController {
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/{orderId}")
     public ResponseData<OrderResponse> getOrderByIdForAdmin(@PathVariable Integer orderId) {
         log.info("CONTROLLER - API GET /orders/admin/{} - For Admin", orderId);
@@ -203,7 +203,7 @@ public class OrderController {
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/admin/{orderId}/status")
     public ResponseData<OrderResponse> updateOrderStatus(
             @PathVariable Integer orderId,

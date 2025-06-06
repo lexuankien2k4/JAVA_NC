@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thống kê Doanh thu & Sản phẩm</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="/css/thongke.css"> <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="container">
+    <aside>
+        <div class="toggle">
+            <div class="logo">
+                <img src="https://cdn-001.haui.edu.vn//img/logo-haui-size.png" alt="Logo HAUI">
+                <h2>NHÓM 17</h2>
+            </div>
+            <div class="close" id="close-btn-sidebar">
+                <span class="material-icons-sharp">close</span>
+            </div>
+        </div>
+        <div class="sidebar">
+            <a href="/admin/dashboard">
+                <span class="material-icons-sharp">dashboard</span>
+                <h3>Dashboard</h3>
+            </a>
+            <a href="/admin/manage-orders">
+                <span class="material-icons-sharp">inventory</span>
+                <h3>Quản lý đơn hàng</h3>
+            </a>
+            <a href="/admin/manage-products">
+                <span class="material-icons-sharp">production_quantity_limits</span>
+                <h3>Quản lý sản phẩm</h3>
+            </a>
+            <a href="/admin/manage-categories">
+                <span class="material-icons-sharp">segment</span>
+                <h3>Quản lý danh mục</h3>
+            </a>
+            <a href="/admin/manage-warehouse">
+                <span class="material-icons-sharp">warehouse</span>
+                <h3>Quản lý kho hàng</h3>
+            </a>
+            <a href="/admin/manage-suppliers">
+                <span class="material-icons-sharp">inventory_2</span>
+                <h3>Quản lý cung ứng</h3>
+            </a>
+            <a href="/admin/manage-customers" >
+                <span class="material-icons-sharp">people</span>
+                <h3>Khách hàng</h3>
+            </a>
+            <a href="/admin/statistics" class="active">
+                <span class="material-icons-sharp">insights</span>
+                <h3>Analytics</h3>
+            </a>
+            <a href="/admin/manage-staff">
+                <span class="material-icons-sharp">person_outline</span>
+                <h3>Staff</h3>
+            </a>
+            <a href="/admin/manage-admins">
+                <span class="material-icons-sharp">manage_accounts</span>
+                <h3>Admin</h3>
+            </a>
+            <a href="#" id="logoutButton">
+                <span class="material-icons-sharp">logout</span>
+                <h3>Logout</h3>
+            </a>
+        </div>
+    </aside>
+
+    <main>
+        <div class="main-nemu">
+            <h1>THỐNG KÊ DOANH THU & SẢN PHẨM</h1>
+            <div class="nav">
+                <button id="menu-btn-sidebar">
+                    <span class="material-icons-sharp">menu</span>
+                </button>
+                <div class="dark-mode">
+                    <span class="material-icons-sharp active">light_mode</span>
+                    <span class="material-icons-sharp">dark_mode</span>
+                </div>
+                <div class="profile">
+                    <div class="info">
+                        <p>Hey, <b id="name-id">Admin</b></p> <small class="text-muted" id="office">Quản trị viên</small>
+                    </div>
+                    <div class="profile-photo">
+                        <a href="#"> <img src="https://placehold.co/40x40/EFEFEF/AAAAAA&text=AVT" alt="Ảnh đại diện"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-sections">
+            <div class="chart-section">
+                <h2>Doanh thu theo ngày</h2>
+                <div class="filter-controls">
+                    <label for="startDate">Từ ngày:</label>
+                    <input type="date" id="startDate" name="startDate">
+                    <label for="endDate">Đến ngày:</label>
+                    <input type="date" id="endDate" name="endDate">
+                    <button id="filterDailyRevenue">Lọc</button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="dailyRevenueChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <h2>Doanh thu theo tuần (Năm hiện tại)</h2>
+                <div class="chart-container">
+                    <canvas id="weeklyRevenueChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <h2>Doanh thu theo tháng (Năm hiện tại)</h2>
+                <div class="chart-container">
+                    <canvas id="monthlyRevenueChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <h2>Doanh thu theo năm</h2>
+                <div class="chart-container">
+                    <canvas id="yearlyRevenueChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <h2>Top 5 sản phẩm bán chạy nhất</h2>
+                <div class="chart-container">
+                    <canvas id="topProductsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="toast" class="toast">
+    <span id="toastMessage"></span>
+</div>
+
+<script>
+    // API Base URL
+    const API_STATISTICS_URL = '/api/statistics';
+
+    // DOM Elements
+    let toast, toastMessage, loggedInUserNameSpan, logoutButton;
+
+    // Chart instances
+    let dailyRevenueChartInstance, weeklyRevenueChartInstance, monthlyRevenueChartInstance, yearlyRevenueChartInstance, topProductsChartInstance;
+
+    // --- Token Management (Lấy từ Quanlysanpham.html) ---
+    function getToken() {
+        const token = localStorage.getItem('accessToken');
+        // console.log("AdminStatisticalPage - Retrieved token:", token ? token.substring(0,20) + "..." : "No token found");
+        return token;
+    }
+    function removeToken() {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('loggedInUser');
+        console.log("AdminStatisticalPage - Tokens and user info removed.");
+    }
+    function getLoggedInUser() {
+        const userData = localStorage.getItem('loggedInUser');
+        try { return userData ? JSON.parse(userData) : null; }
+        catch (e) { console.error("Lỗi phân tích loggedInUser", e); return null; }
+    }
+
+    // --- Utility Functions (Lấy từ Quanlysanpham.html) ---
+    function showToast(message, isSuccess = true) {
+        if (!toast || !toastMessage) { console.warn("Toast elements not found for:", message); return; }
+        toastMessage.textContent = message;
+        toast.className = `toast ${isSuccess ? 'success' : 'error'}`;
+        toast.style.display = 'block';
+        setTimeout(() => { if(toast) toast.style.display = 'none'; }, 3000);
+    }
+
+    // Hàm chung để vẽ biểu đồ (Cập nhật để xử lý ResponseData và lỗi toLocaleString)
+    function renderChart(chartId, chartType, labelText, labels, data, colors = ['rgba(75, 192, 192, 0.6)']) {
+        const ctx = document.getElementById(chartId);
+        if (!ctx) {
+            console.error(`Canvas element with ID ${chartId} not found.`);
+            return null;
+        }
+        const chartContext = ctx.getContext('2d');
+
+        // Hủy biểu đồ cũ nếu có
+        if (Chart.getChart(chartId)) {
+            Chart.getChart(chartId).destroy();
+        }
+
+        const newChartInstance = new Chart(chartContext, {
+            type: chartType,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: labelText,
+                    data: data,
+                    backgroundColor: colors,
+                    borderColor: Array.isArray(colors) ? colors.map(c => c.replace('0.6', '1')) : colors.replace('0.6', '1'),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Quan trọng để biểu đồ co giãn tốt
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                // Kiểm tra kiểu dữ liệu trước khi gọi toLocaleString
+                                if (typeof value === 'number') {
+                                    if (chartType === 'bar' && labelText.includes('Doanh thu')) {
+                                        return value.toLocaleString('vi-VN') + ' VND';
+                                    }
+                                    return value.toLocaleString('vi-VN'); // Định dạng số chung
+                                }
+                                return value; // Trả về nguyên gốc nếu không phải số
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            autoSkip: true,
+                            maxRotation: 45,
+                            minRotation: 0
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) label += ': ';
+                                // Kiểm tra context.parsed.y tồn tại và là số
+                                if (context.parsed.y !== null && typeof context.parsed.y === 'number') {
+                                    if (labelText.includes('Doanh thu')) {
+                                        label += context.parsed.y.toLocaleString('vi-VN') + ' VND';
+                                    } else {
+                                        label += context.parsed.y.toLocaleString('vi-VN');
+                                    }
+                                } else {
+                                    label += context.parsed.y; // Fallback nếu không phải số
+                                }
+                                return label;
+                            }
+                        }
+                    },
+                    legend: {
+                        display: true
+                    }
+                }
+            }
+        });
+        return newChartInstance;
+    }
+
+
+    // --- API Call Wrapper (Lấy từ Quanlysanpham.html, có điều chỉnh để xử lý ResponseData) ---
+    async function makeApiCall(url, method = 'GET', body = null, requiresAuth = true) {
+        const headers = { 'Content-Type': 'application/json' };
+        const token = getToken();
+
+        if (requiresAuth) {
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            } else {
+                console.warn(`API Call to ${url} requires auth but no token found. Redirecting to login.`);
+                showToast('Vui lòng đăng nhập để tiếp tục.', false);
+                // Sử dụng đường dẫn controller để tránh lỗi định tuyến
+                window.location.href = '/login';
+                throw new Error('Unauthorized - No token, redirecting');
+            }
+        }
+        const config = { method: method, headers: headers };
+        if (body && (method === 'POST' || method === 'PATCH' || method === 'PUT' || method === 'DELETE')) {
+            config.body = JSON.stringify(body);
+        }
+        // console.log(`Sending ${method} to ${url}`, config.body ? `with body: ${config.body.substring(0,100)}...` : '');
+        const response = await fetch(url, config);
+        // console.log(`Raw response from ${url} - Status: ${response.status}, Content-Type: ${response.headers.get('Content-Type')}`);
+
+        if (response.status === 401 && token) {
+            showToast('Phiên đăng nhập không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.', false);
+            removeToken();
+            updateUserAuthStatusOnPage(); // Cập nhật trạng thái người dùng trên UI
+            window.location.href = '/login';
+            throw new Error('Unauthorized');
+        }
+        if (response.status === 403) { // 403 Forbidden
+             showToast('Bạn không có quyền thực hiện hành động này.', false);
+             throw new Error('Forbidden');
+        }
+        if (!response.ok) { // Xử lý các lỗi HTTP khác (ví dụ: 500)
+            let errorMsg = `Lỗi server (${response.status})`;
+            try {
+                const errorData = await response.json();
+                errorMsg = errorData.message || errorData.error || errorMsg;
+            } catch (e) {
+                errorMsg = await response.text();
+            }
+            throw new Error(errorMsg);
+        }
+        return response;
+    }
+
+    // --- Fetch and Render Chart Data ---
+    async function fetchAndRenderChart(url, chartId, chartType, labelText) {
+        try {
+            const response = await makeApiCall(url);
+            const responseData = await response.json(); // Đây là ResponseData<T>
+
+            if (responseData.status === 200 && responseData.data) {
+                const labels = Object.keys(responseData.data);
+                const values = Object.values(responseData.data);
+                // Tạo màu ngẫu nhiên cho biểu đồ tròn (Top 5 sản phẩm)
+                const colors = chartType === 'pie' ? generateRandomColors(labels.length) : ['rgba(75, 192, 192, 0.6)'];
+
+                if (chartId === 'dailyRevenueChart') dailyRevenueChartInstance = renderChart(chartId, chartType, labelText, labels, values, colors);
+                else if (chartId === 'weeklyRevenueChart') weeklyRevenueChartInstance = renderChart(chartId, chartType, labelText, labels, values, colors);
+                else if (chartId === 'monthlyRevenueChart') monthlyRevenueChartInstance = renderChart(chartId, chartType, labelText, labels, values, colors);
+                else if (chartId === 'yearlyRevenueChart') yearlyRevenueChartInstance = renderChart(chartId, chartType, labelText, labels, values, colors);
+                else if (chartId === 'topProductsChart') topProductsChartInstance = renderChart(chartId, chartType, labelText, labels, values, colors);
+
+            } else {
+                throw new Error(responseData.message || responseData.error || "Không thể tải dữ liệu.");
+            }
+        } catch (error) {
+            // Chỉ hiển thị toast nếu lỗi không phải là Unauthorized hoặc Forbidden đã được xử lý
+            if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+                console.error(`Lỗi khi tải dữ liệu cho ${chartId}:`, error);
+                showToast(`Lỗi khi tải ${labelText}: ${error.message}`, false);
+            }
+        }
+    }
+
+    function generateRandomColors(numColors) {
+        const colors = [];
+        for (let i = 0; i < numColors; i++) {
+            const r = Math.floor(Math.random() * 200);
+            const g = Math.floor(Math.random() * 200);
+            const b = Math.floor(Math.random() * 200);
+            colors.push(`rgba(${r}, ${g}, ${b}, 0.6)`);
+        }
+        return colors;
+    }
+
+
+    async function fetchDailyRevenue() {
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const startDate = startDateInput.value;
+        const endDate = endDateInput.value;
+
+        if (!startDate || !endDate) {
+            showToast('Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc.', false);
+            return;
+        }
+        if (new Date(startDate) > new Date(endDate)) {
+            showToast('Ngày bắt đầu không được lớn hơn ngày kết thúc.', false);
+            return;
+        }
+        await fetchAndRenderChart(`${API_STATISTICS_URL}/revenue/daily?startDate=${startDate}&endDate=${endDate}`, 'dailyRevenueChart', 'bar', 'Doanh thu hàng ngày');
+    }
+
+    async function fetchAllCharts() {
+        const currentYear = new Date().getFullYear();
+
+        // Đặt ngày mặc định cho biểu đồ doanh thu theo ngày (ví dụ: 30 ngày gần nhất)
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+
+        document.getElementById('endDate').value = today.toISOString().split('T')[0];
+        document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+
+        // Lấy dữ liệu mặc định khi tải trang
+        await fetchDailyRevenue();
+        // Lấy dữ liệu cho các biểu đồ khác
+        await fetchAndRenderChart(`${API_STATISTICS_URL}/revenue/weekly?year=${currentYear}`, 'weeklyRevenueChart', 'bar', 'Doanh thu hàng tuần');
+        await fetchAndRenderChart(`${API_STATISTICS_URL}/revenue/monthly?year=${currentYear}`, 'monthlyRevenueChart', 'bar', 'Doanh thu hàng tháng');
+        await fetchAndRenderChart(`${API_STATISTICS_URL}/revenue/yearly`, 'yearlyRevenueChart', 'bar', 'Doanh thu hàng năm');
+        await fetchAndRenderChart(`${API_STATISTICS_URL}/products/top5-sold`, 'topProductsChart', 'pie', 'Số lượng bán ra');
+    }
+
+    // --- Cập nhật trạng thái đăng nhập trên UI (Lấy từ Quanlysanpham.html) ---
+    function updateUserAuthStatusOnPage() {
+        const user = getLoggedInUser();
+        if (loggedInUserNameSpan) {
+            if (user && (user.userName || user.firstName)) {
+                const displayName = user.userName || `${user.firstName || ''} ${user.lastName || ''}`.trim();
+                loggedInUserNameSpan.textContent = displayName;
+            } else {
+                loggedInUserNameSpan.textContent = "Admin";
+            }
+        }
+    }
+
+    // --- Event Listeners and Initial Load ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // Gắn các DOM Elements
+        toast = document.getElementById('toast');
+        toastMessage = document.getElementById('toastMessage');
+        loggedInUserNameSpan = document.getElementById('name-id');
+        logoutButton = document.getElementById('logoutButton');
+
+        // Kiểm tra token và chuyển hướng nếu không có
+        const token = getToken();
+        if (!token) {
+            console.log("Admin Statistical Page: No token, redirecting to login.");
+            window.location.href = '/login'; // Chuyển hướng về trang login của Spring Boot
+            return;
+        }
+        updateUserAuthStatusOnPage();
+
+        // Gắn sự kiện cho nút lọc doanh thu theo ngày
+        const filterDailyRevenueBtn = document.getElementById('filterDailyRevenue');
+        if (filterDailyRevenueBtn) {
+            filterDailyRevenueBtn.addEventListener('click', fetchDailyRevenue);
+        }
+
+        // Gắn sự kiện cho nút logout
+        if (logoutButton) {
+            logoutButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                removeToken();
+                showToast('Bạn đã đăng xuất.', true);
+                setTimeout(() => { window.location.href = '/login'; }, 1500);
+            });
+        }
+
+        // Khởi tạo và tải tất cả biểu đồ khi trang được tải
+        fetchAllCharts();
+
+        // Sidebar and Dark Mode (Lấy từ Quanlysanpham.html)
+        const menuBtnSidebar = document.getElementById('menu-btn-sidebar');
+        const closeBtnSidebarElem = document.getElementById('close-btn-sidebar');
+        const sidebar = document.querySelector('aside');
+        if (menuBtnSidebar && sidebar) menuBtnSidebar.addEventListener('click', () => { sidebar.style.display = 'block'; });
+        if (closeBtnSidebarElem && sidebar) closeBtnSidebarElem.addEventListener('click', () => { sidebar.style.display = 'none'; });
+
+        const darkModeToggle = document.querySelector('.dark-mode');
+        if (darkModeToggle) {
+             const body = document.body;
+             const lightModeSpan = document.querySelector('.dark-mode span:nth-child(1)');
+             const darkModeSpan = document.querySelector('.dark-mode span:nth-child(2)');
+
+             darkModeToggle.addEventListener('click', () => {
+                 body.classList.toggle('dark-mode-variables');
+                 lightModeSpan.classList.toggle('active');
+                 darkModeSpan.classList.toggle('active');
+             });
+             // Áp dụng chế độ tối ngay lập tức nếu được lưu trữ (ví dụ từ localStorage)
+             // if (localStorage.getItem('darkMode') === 'enabled') {
+             //     body.classList.add('dark-mode-variables');
+             //     lightModeSpan.classList.remove('active');
+             //     darkModeSpan.classList.add('active');
+             // }
+        }
+    });
+</script>
+</body>
+</html>

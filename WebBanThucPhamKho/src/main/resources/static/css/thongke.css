@@ -1,0 +1,455 @@
+/* Tổng quan và reset */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --color-primary: #7380ec;
+    --color-danger: #ff7782;
+    --color-success: #41f1b6;
+    --color-warning: #ffbb55;
+    --color-white: #fff;
+    --color-info-dark: #7d8da1;
+    --color-info-light: #dce1eb;
+    --color-dark: #36454F; /* Màu tối chính, đã điều chỉnh */
+    --color-light: rgba(132, 139, 200, 0.18);
+    --color-primary-variant: #111e88;
+    --color-dark-variant: #677483;
+    --color-background: #f6f6f9;
+
+    --card-border-radius: 2rem;
+    --border-radius-1: 0.4rem;
+    --border-radius-2: 0.8rem;
+    --border-radius-3: 1.2rem;
+
+    --card-padding: 1.8rem;
+    --padding-1: 1.2rem;
+
+    --box-shadow: 0 2rem 2rem var(--color-light);
+}
+
+/* Dark Mode Variables */
+.dark-mode-variables {
+    --color-background: #181a1e;
+    --color-white: #202528;
+    --color-dark: #edeffd;
+    --color-dark-variant: #a3bdcc;
+    --color-light: rgba(0, 0, 0, 0.4);
+    --box-shadow: 0 2rem 2rem var(--color-light);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    outline: 0;
+    appearance: none;
+    border: 0;
+    text-decoration: none;
+    list-style: none;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 14px;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.88rem;
+    background-color: var(--color-background);
+    user-select: none;
+    overflow-x: hidden;
+    color: var(--color-dark);
+}
+
+.container {
+    display: grid;
+    width: 96%;
+    margin: 0 auto;
+    gap: 1.8rem;
+    grid-template-columns: 14rem auto; /* Điều chỉnh kích thước sidebar */
+}
+
+a {
+    color: var(--color-dark);
+}
+
+img {
+    display: block;
+    width: 100%;
+}
+
+h1 {
+    font-weight: 800;
+    font-size: 1.8rem;
+}
+
+h2 {
+    font-weight: 600;
+    font-size: 1.4rem;
+}
+
+h3 {
+    font-weight: 500;
+    font-size: 0.87rem;
+}
+
+h4 {
+    font-weight: 500;
+    font-size: 0.8rem;
+}
+
+h5 {
+    font-size: 0.77rem;
+}
+
+small {
+    font-size: 0.75rem;
+}
+
+.profile-photo {
+    width: 2.8rem;
+    height: 2.8rem;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.text-muted {
+    color: var(--color-info-dark);
+}
+
+p {
+    color: var(--color-dark-variant);
+}
+
+b {
+    color: var(--color-dark);
+}
+
+.primary {
+    color: var(--color-primary);
+}
+
+.danger {
+    color: var(--color-danger);
+}
+
+.success {
+    color: var(--color-success);
+}
+
+.warning {
+    color: var(--color-warning);
+}
+
+/* ASIDE */
+aside {
+    height: 100vh;
+    background-color: var(--color-white);
+    box-shadow: var(--box-shadow);
+    z-index: 11; /* Đảm bảo sidebar nằm trên */
+}
+
+aside .toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1.4rem;
+    margin-left: 1.4rem;
+}
+
+aside .toggle .logo {
+    display: flex;
+    gap: 0.5rem;
+}
+
+aside .toggle .logo img {
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+aside .close {
+    padding-right: 1rem;
+    display: none; /* Mặc định ẩn trên desktop */
+}
+
+aside .sidebar {
+    display: flex;
+    flex-direction: column;
+    height: 86vh;
+    position: relative;
+    top: 3rem;
+}
+
+aside .sidebar a {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: 3.5rem;
+    color: var(--color-info-dark);
+    margin-left: 2rem;
+    position: relative;
+    transition: all 300ms ease;
+}
+
+aside .sidebar a span {
+    font-size: 1.6rem;
+    transition: all 300ms ease;
+}
+
+aside .sidebar a:last-child {
+    position: absolute;
+    bottom: 2rem;
+    width: 100%;
+}
+
+aside .sidebar a.active {
+    width: 100%;
+    color: var(--color-primary);
+    margin-left: 0;
+}
+
+aside .sidebar a.active::before {
+    content: '';
+    width: 6px;
+    height: 100%;
+    background-color: var(--color-primary);
+    position: absolute;
+    left: 0;
+}
+
+aside .sidebar a.active span {
+    color: var(--color-primary);
+    margin-left: calc(1rem - 3px);
+}
+
+aside .sidebar a:hover {
+    color: var(--color-primary);
+}
+
+aside .sidebar a:hover span {
+    margin-left: 1rem;
+}
+
+/* MAIN */
+main {
+    padding-top: 1.4rem;
+}
+
+main .main-nemu {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.4rem;
+    background-color: var(--color-white);
+    padding: var(--card-padding);
+    border-radius: var(--card-border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+main .main-nemu h1 {
+    color: var(--color-dark);
+}
+
+main .main-nemu .nav {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+main .main-nemu .nav button {
+    display: none; /* Mặc định ẩn trên desktop */
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    color: var(--color-dark);
+}
+
+main .main-nemu .dark-mode {
+    background-color: var(--color-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 1.6rem;
+    width: 4.2rem;
+    border-radius: var(--border-radius-1);
+    cursor: pointer;
+}
+
+main .main-nemu .dark-mode span {
+    font-size: 1.2rem;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+main .main-nemu .dark-mode span.active {
+    background-color: var(--color-primary);
+    color: white;
+    border-radius: var(--border-radius-1);
+}
+
+main .main-nemu .profile {
+    display: flex;
+    gap: 1rem;
+    text-align: right;
+}
+
+/* Content Sections for Statistics */
+.content-sections {
+    margin-top: 2rem;
+}
+
+.chart-section {
+    background-color: var(--color-white);
+    padding: var(--card-padding);
+    border-radius: var(--card-border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.chart-section h2 {
+    margin-bottom: 1.5rem;
+    color: var(--color-dark);
+    font-size: 1.6rem;
+    border-bottom: 1px solid var(--color-info-light);
+    padding-bottom: 1rem;
+}
+
+.filter-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-controls label {
+    font-weight: 600;
+    color: var(--color-dark-variant);
+}
+
+.filter-controls input[type="date"],
+.filter-controls input[type="number"],
+.filter-controls select {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--color-info-light);
+    border-radius: var(--border-radius-1);
+    font-size: 0.9rem;
+    min-width: 120px;
+    background-color: var(--color-background);
+    color: var(--color-dark);
+}
+
+.filter-controls button {
+    padding: 0.7rem 1.2rem;
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-1);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s ease;
+}
+
+.filter-controls button:hover {
+    background-color: var(--color-primary-variant);
+}
+
+.chart-container {
+    width: 95%;
+    margin: 20px auto;
+    max-width: 900px; /* Giới hạn kích thước biểu đồ */
+    height: 400px; /* Đặt chiều cao cố định cho biểu đồ */
+    position: relative;
+}
+
+/* Toast Notification Styling (tương tự Quanlysanpham.html) */
+.toast {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    min-width: 250px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+    padding: 16px;
+    z-index: 1050;
+    font-size: 17px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+.toast.success { background-color: var(--color-success); }
+.toast.error { background-color: var(--color-danger); }
+
+/* Responsive adjustments */
+@media screen and (max-width: 1200px) {
+    .container {
+        grid-template-columns: 7rem auto; /* Thu nhỏ sidebar trên màn hình nhỏ hơn */
+    }
+    aside .sidebar h3 {
+        display: none;
+    }
+    aside .sidebar a {
+        width: 5.4rem;
+    }
+    aside .sidebar a:last-child {
+        position: relative;
+        margin-top: 1.8rem;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr;
+    }
+    aside {
+        position: fixed;
+        left: -100%;
+        top: 0;
+        width: 18rem;
+        z-index: 11;
+        box-shadow: 1rem 3rem 4rem var(--color-light);
+        height: 100vh;
+        padding-right: 1.4rem;
+        display: none; /* Ẩn sidebar mặc định trên mobile */
+        animation: showSidebar 500ms ease forwards;
+    }
+    @keyframes showSidebar {
+        to { left: 0; }
+    }
+    aside .close {
+        display: inline-block;
+        cursor: pointer;
+    }
+    aside .sidebar h3 {
+        display: inline; /* Hiện lại chữ khi sidebar mở */
+    }
+    aside .sidebar a {
+        width: 100%;
+        height: 3.9rem;
+    }
+    aside .sidebar a:last-child {
+        position: absolute;
+        bottom: 5rem;
+    }
+    main .main-nemu .nav .dark-mode,
+    main .main-nemu .nav .profile {
+        display: none;
+    }
+    main .main-nemu .nav button {
+        display: inline-block;
+    }
+    main .main-nemu h1 {
+        font-size: 1.5rem;
+    }
+    .chart-container {
+        height: 300px; /* Giảm chiều cao biểu đồ trên mobile */
+    }
+}

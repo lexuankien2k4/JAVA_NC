@@ -16,23 +16,17 @@
     .toast.success { background-color: #4CAF50; }
     .toast.error { background-color: #f44336; }
     .order-summary-table th, .order-summary-table td {
-        padding: 0.75rem;
-        text-align: left;
+        padding: 0.75rem; text-align: left;
         border-bottom: 1px solid #e5e7eb; /* gray-200 */
     }
     .order-summary-table th {
-        background-color: #f9fafb; /* gray-50 */
-        font-weight: 600;
-        font-size: 0.75rem; /* text-xs */
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: #4b5563; /* gray-600 */
+        background-color: #f9fafb; /* gray-50 */ font-weight: 600;
+        font-size: 0.75rem; /* text-xs */ text-transform: uppercase;
+        letter-spacing: 0.05em; color: #4b5563; /* gray-600 */
     }
     .order-summary-table img {
-        width: 4rem; /* w-16 */
-        height: 4rem; /* h-16 */
-        object-fit: cover;
-        border-radius: 0.25rem; /* rounded-sm */
+        width: 4rem; /* w-16 */ height: 4rem; /* h-16 */
+        object-fit: cover; border-radius: 0.25rem; /* rounded-sm */
         margin-right: 1rem;
     }
   </style>
@@ -91,7 +85,7 @@
           <p><strong>Số điện thoại:</strong> <span id="confCustomerPhone"></span></p>
           <p id="confCustomerEmailContainer" class="hidden"><strong>Email:</strong> <span id="confCustomerEmail"></span></p>
           <p><strong>Địa chỉ giao hàng:</strong> <span id="confShippingAddress"></span></p>
-          <p id="confOrderTitleContainer" class="hidden"><strong>Ghi chú:</strong> <span id="confOrderTitle"></span></p>
+          <p id="confOrderTitleContainer" class="hidden"><strong>Ghi chú:</strong> <span id="confOrderTitle" class="italic text-gray-600"></span></p>
         </div>
       </div>
 
@@ -108,6 +102,7 @@
             </tr>
             </thead>
             <tbody id="confOrderItemsContainer">
+            <!-- Chi tiết sản phẩm sẽ được render ở đây -->
             </tbody>
           </table>
         </div>
@@ -117,7 +112,7 @@
         <a href="/" class="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-6 rounded-md transition-colors mr-3">
           <i class="fas fa-home mr-2"></i>Tiếp tục mua sắm
         </a>
-        <a href="/my-orders" id="viewOrderHistoryBtn" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-md transition-colors">
+        <a href="/orders/my-history" id="viewOrderHistoryBtn" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-md transition-colors">
           <i class="fas fa-history mr-2"></i>Xem lịch sử đơn hàng
         </a>
       </div>
@@ -140,7 +135,8 @@
 <div id="toast" class="toast"><span id="toastMessage"></span></div>
 
 <script>
-  const API_ORDER_URL_CONF = '/api/v1/orders'; // Đổi tên để tránh nhầm lẫn
+  // URLs API
+  const API_ORDER_URL_CONF = '/api/v1/orders';
 
   // DOM Elements
   let userAuthStatusHeaderEl_oc, cartItemCountHeaderEl_oc, toast_oc, toastMessage_oc,
@@ -151,21 +147,40 @@
       viewOrderHistoryBtn_oc;
 
 
-  // --- Token & Guest Cart Management ---
+  // --- Token Management ---
   function getToken_oc() { return localStorage.getItem('accessToken'); }
   function removeToken_oc() { localStorage.removeItem('accessToken'); localStorage.removeItem('refreshToken'); localStorage.removeItem('loggedInUser'); }
   function getLoggedInUser_oc() { const u = localStorage.getItem('loggedInUser'); try { return u ? JSON.parse(u) : null; } catch(e) { return null; } }
-  function removeGuestCartId_oc() { localStorage.removeItem('guestCartId'); } // Vẫn cần nếu user là guest vừa đặt xong
 
   // --- Utility Functions ---
-  function showToast_oc(message, isSuccess = true) { /* ... (Copy từ file cart.html hoặc file JS chung) ... */ }
-  function formatPrice_oc(price) { /* ... (Copy từ file cart.html hoặc file JS chung) ... */ }
-  function formatDate_oc(dateString) {
-      if (!dateString) return 'N/A';
-      try { const date = new Date(dateString); if (isNaN(date.getTime())) return 'N/A'; return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
-      catch (e) { console.warn("Error formatting date:", dateString, e); return 'N/A'; }
+  function showToast_oc(message, isSuccess = true) {
+      if (!toast_oc || !toastMessage_oc) return;
+      toastMessage_oc.textContent = message;
+      toast_oc.className = `toast ${isSuccess ? 'success' : 'error'}`;
+      toast_oc.style.display = 'block';
+      setTimeout(() => { if(toast_oc) toast_oc.style.display = 'none'; }, 3000);
   }
-
+  function formatPrice_oc(price) {
+      const numericPrice = Number(price);
+      if (price == null || isNaN(numericPrice)) { return '0 ₫'; }
+      return numericPrice.toLocaleString('vi-VN') + ' ₫';
+  }
+  function formatDate_oc(dateString) { // Dùng cho java.util.Date từ AbstractEntity
+      if (!dateString) return 'N/A';
+      try {
+          const date = new Date(dateString);
+          if (isNaN(date.getTime())) return 'N/A';
+          const day = date.getDate().toString().padStart(2, '0');
+          const month = (date.getMonth() + 1).toString().padStart(2, '0');
+          const year = date.getFullYear();
+          const hours = date.getHours().toString().padStart(2, '0');
+          const minutes = date.getMinutes().toString().padStart(2, '0');
+          return `${day}/${month}/${year} ${hours}:${minutes}`;
+      } catch (e) {
+          console.warn("Lỗi định dạng ngày:", dateString, e);
+          return 'N/A';
+      }
+  }
 
   // --- API Call Wrapper ---
   async function makeApiCall_oc(url, method = 'GET', body = null, requiresAuth = true) { // Mặc định API order cần auth
@@ -180,17 +195,29 @@
               showToast_oc('Vui lòng đăng nhập để xem thông tin đơn hàng.', false);
               localStorage.setItem('redirectAfterLogin', window.location.href); // Lưu lại trang hiện tại
               window.location.href = '/login';
-              return { error: 'NO_TOKEN', status: 401, ok: false, headers: new Headers(), json: async () => ({message: "Yêu cầu đăng nhập"}), text: async () => "Yêu cầu đăng nhập" };
+              return Promise.reject({ error: 'NO_TOKEN', message: "Yêu cầu đăng nhập" });
           }
       }
-      // ... (Phần còn lại của makeApiCall tương tự như các file khác, xử lý response.status 401/403)
-      const config = { method: method, headers: headers };
+
+      const config = { method, headers };
       if (body && (method === 'POST' || method === 'PATCH' || method === 'PUT')) {
           config.body = JSON.stringify(body);
       }
+      console.log(`OrderConfPage - Calling API: ${method} ${url}`);
       const response = await fetch(url, config);
-      if (response.status === 401 && token) { /* ... xử lý 401 ... */ throw new Error('Unauthorized');}
-      if (response.status === 403 && token) { /* ... xử lý 403 ... */ throw new Error('Forbidden');}
+      console.log(`OrderConfPage - Raw response from ${url} - Status: ${response.status}`);
+
+      if ((response.status === 401 || response.status === 403) && token && requiresAuth) {
+          const message = response.status === 401 ? 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.' : 'Bạn không có quyền truy cập.';
+          showToast_oc(message, false);
+          if (response.status === 401) {
+              removeToken_oc();
+              updateUserAuthStatusOnHeader_oc();
+              localStorage.setItem('redirectAfterLogin', window.location.href);
+              window.location.href = '/login';
+          }
+          throw new Error(response.status === 401 ? 'Unauthorized' : 'Forbidden');
+      }
       return response;
   }
 
@@ -211,8 +238,6 @@
           // API GET /orders/{orderId} của bạn yêu cầu xác thực
           const response = await makeApiCall_oc(`${API_ORDER_URL_CONF}/${orderId}`, 'GET', null, true);
 
-          if (response.error === 'NO_TOKEN') return; // makeApiCall đã xử lý
-
           if (!response.ok) {
               let errorMsg = `Lỗi tải đơn hàng ${orderId} (${response.status})`;
               try {
@@ -230,7 +255,7 @@
               throw new Error(responseData.message || "Không thể tải dữ liệu đơn hàng.");
           }
       } catch (error) {
-          if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+          if (error.message !== 'Unauthorized' && error.message !== 'Forbidden' && error.message !== 'NO_TOKEN') {
               console.error(`Lỗi khi tải đơn hàng ID ${orderId}:`, error);
               showToast_oc(`Lỗi tải đơn hàng: ${error.message}`, false);
               if (orderNotFoundErrorEl_oc) orderNotFoundErrorEl_oc.style.display = 'block';
@@ -248,27 +273,31 @@
       if (confirmationDetailsEl_oc) confirmationDetailsEl_oc.classList.remove('hidden');
 
       if(confOrderIdEl) confOrderIdEl.textContent = `#${orderData.id}`;
-      if(confOrderDateEl) confOrderDateEl.textContent = formatDate_oc(orderData.createAt); // Sử dụng createAt từ OrderResponse
+      if(confOrderDateEl) confOrderDateEl.textContent = formatDate_oc(orderData.createAt);
       if(confOrderStatusEl) confOrderStatusEl.textContent = orderData.status || 'N/A';
       if(confOrderTotalEl) confOrderTotalEl.textContent = formatPrice_oc(orderData.totalPrice);
 
       if(confCustomerNameEl) confCustomerNameEl.textContent = orderData.customerName || 'N/A';
       if(confCustomerPhoneEl) confCustomerPhoneEl.textContent = orderData.customerPhone || 'N/A';
-      if(orderData.customerEmail) {
-          if(confCustomerEmailEl) confCustomerEmailEl.textContent = orderData.customerEmail;
-          if(confCustomerEmailContainerEl) confCustomerEmailContainerEl.classList.remove('hidden');
-      } else {
-          if(confCustomerEmailContainerEl) confCustomerEmailContainerEl.classList.add('hidden');
+
+      if(orderData.customerEmail && confCustomerEmailEl && confCustomerEmailContainerEl) {
+          confCustomerEmailEl.textContent = orderData.customerEmail;
+          confCustomerEmailContainerEl.classList.remove('hidden');
+      } else if (confCustomerEmailContainerEl) {
+          confCustomerEmailContainerEl.classList.add('hidden');
       }
 
       if(orderData.shippingAddress && confShippingAddressEl) {
           confShippingAddressEl.textContent = orderData.shippingAddress.fullAddress || 'N/A';
+      } else if (confShippingAddressEl) {
+          confShippingAddressEl.textContent = 'N/A';
       }
-      if(orderData.title) {
-          if(confOrderTitleEl) confOrderTitleEl.textContent = orderData.title;
-          if(confOrderTitleContainerEl) confOrderTitleContainerEl.classList.remove('hidden');
-      } else {
-          if(confOrderTitleContainerEl) confOrderTitleContainerEl.classList.add('hidden');
+
+      if(orderData.title && confOrderTitleEl && confOrderTitleContainerEl) {
+          confOrderTitleEl.textContent = orderData.title;
+          confOrderTitleContainerEl.classList.remove('hidden');
+      } else if (confOrderTitleContainerEl) {
+          confOrderTitleContainerEl.classList.add('hidden');
       }
 
 
@@ -295,14 +324,39 @@
           confOrderItemsContainerEl.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-gray-500">Không có chi tiết sản phẩm.</td></tr>';
       }
 
-      if (!getToken_oc() && viewOrderHistoryBtn_oc) { // Ẩn nút xem lịch sử nếu là guest
+      if (!getToken_oc() && viewOrderHistoryBtn_oc) {
           viewOrderHistoryBtn_oc.style.display = 'none';
+      } else if (viewOrderHistoryBtn_oc) {
+          viewOrderHistoryBtn_oc.style.display = 'inline-block';
       }
   }
 
-
   // --- Cập nhật trạng thái đăng nhập trên UI Header ---
-  function updateUserAuthStatusOnHeader() { /* ... (Giữ nguyên như file checkout.html, sử dụng getLoggedInUser_oc, removeToken_oc, etc.) ... */ }
+  function updateUserAuthStatusOnHeader_oc() {
+      const user = getLoggedInUser_oc();
+      if (userAuthStatusHeaderEl_oc) {
+          if (user && (user.userName || user.firstName)) {
+              const displayName = user.userName || `${user.firstName || ''} ${user.lastName || ''}`.trim();
+              userAuthStatusHeaderEl_oc.innerHTML = `
+                  <span class="text-gray-700 mr-2">Chào, ${displayName}!</span>
+                  <a href="#" id="logoutLinkOrderConfPage" class="text-red-600 hover:underline font-semibold">Đăng xuất</a>
+              `;
+              const logoutLink = document.getElementById('logoutLinkOrderConfPage');
+              if (logoutLink && !logoutLink.hasLogoutListener) {
+                  logoutLink.addEventListener('click', (e) => {
+                      e.preventDefault(); removeToken_oc();
+                      // Không cần removeGuestCartId ở đây vì đơn hàng đã được đặt
+                      showToast_oc('Bạn đã đăng xuất.', true);
+                      updateUserAuthStatusOnHeader_oc();
+                      window.location.href = '/'; // Chuyển về trang chủ
+                  });
+                  logoutLink.hasLogoutListener = true;
+              }
+          } else {
+              userAuthStatusHeaderEl_oc.innerHTML = '<a href="/login" class="text-gray-700 hover:text-red-600 font-semibold">Đăng nhập</a>';
+          }
+      }
+  }
 
   // --- Khởi tạo Trang Xác nhận Đơn hàng ---
   document.addEventListener('DOMContentLoaded', () => {
@@ -328,10 +382,8 @@
       viewOrderHistoryBtn_oc = document.getElementById('viewOrderHistoryBtn');
 
 
-      updateUserAuthStatusOnHeader();
-      // Cập nhật số lượng giỏ hàng trên header về 0 vì đơn hàng đã được đặt
-      if(cartItemCountHeaderEl_oc) cartItemCountHeaderEl_oc.textContent = '0';
-
+      updateUserAuthStatusOnHeader_oc();
+      if(cartItemCountHeaderEl_oc) cartItemCountHeaderEl_oc.textContent = '0'; // Giỏ hàng đã được đặt
 
       const urlParams = new URLSearchParams(window.location.search);
       const orderId = urlParams.get('orderId');
@@ -344,9 +396,9 @@
           if (orderNotFoundErrorEl_oc) orderNotFoundErrorEl_oc.style.display = 'block';
       }
 
-      // Cập nhật link cho nút xem lịch sử đơn hàng (nếu có)
       if(viewOrderHistoryBtn_oc) {
-          viewOrderHistoryBtn_oc.href = "/my-orders"; // Hoặc đường dẫn đến trang lịch sử đơn hàng của bạn
+          // Đường dẫn này cần được UiController xử lý để trả về trang lịch sử đơn hàng
+          viewOrderHistoryBtn_oc.href = "/orders/my-history";
       }
   });
 </script>

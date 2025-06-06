@@ -27,5 +27,4 @@ public class Address extends AbstractEntity<Integer> {
     @Column(name = "city", length = 100, nullable = false)
     private String city;
 
-    // Bỏ trường 'Order order;' vì Order là phía sở hữu mối quan hệ.
 }
