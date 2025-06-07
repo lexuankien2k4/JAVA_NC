@@ -8,7 +8,7 @@ import com.BTLJAVA.WebBanThucPhamKho.entity.*;
 import com.BTLJAVA.WebBanThucPhamKho.mapper.AddressMapper;
 import com.BTLJAVA.WebBanThucPhamKho.mapper.OrderMapper;
 import com.BTLJAVA.WebBanThucPhamKho.repository.*;
-import com.BTLJAVA.WebBanThucPhamKho.service.CartItemService; // Đảm bảo tên này khớp
+import com.BTLJAVA.WebBanThucPhamKho.service.CartItemService;
 import com.BTLJAVA.WebBanThucPhamKho.service.OrderService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +22,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.SQLException; // Import cho SQLException
-import java.util.Collections;
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,7 +43,11 @@ public class OrderServiceImpl implements OrderService {
     private final AddressMapper addressMapper;
 
     public static final String ORDER_STATUS_PENDING = "PENDING";
-    // ... (các hằng số status khác)
+    public static final String ORDER_STATUS_PROCESSING = "PROCESSING";
+    public static final String ORDER_STATUS_SHIPPED = "SHIPPED";
+    public static final String ORDER_STATUS_DELIVERED = "DELIVERED";
+    public static final String ORDER_STATUS_CANCELLED = "CANCELLED";
+    public static final String ORDER_STATUS_FAILED = "FAILED"; // Thêm trạng thái thất bại
 
     @Override
     @Transactional // Rất quan trọng!
@@ -53,7 +56,7 @@ public class OrderServiceImpl implements OrderService {
 
         User userEntity = null;
         if (userId != null) {
-            userEntity = userRepository.findById(userId)
+            userEntity = userRepository.findById(userId) // userEntity có thể được lấy LAZY
                     .orElseThrow(() -> {
                         log.error("SERVICE::placeOrder - User not found with ID: {}", userId);
                         return new EntityNotFoundException("Không tìm thấy người dùng với ID: " + userId);
@@ -63,6 +66,7 @@ public class OrderServiceImpl implements OrderService {
             log.info("SERVICE::placeOrder - Placing order as guest. GuestCartID from request: {}", orderRequest.getGuestCartId());
         }
 
+        // Lấy giỏ hàng thực tế. Logic này quan trọng.
         CartResponse cart = cartItemService.getCart(userId, orderRequest.getGuestCartId());
         if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
             log.warn("SERVICE::placeOrder - Cart is empty. UserID: {}, GuestCartID: {}", userId, orderRequest.getGuestCartId());
@@ -71,7 +75,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("SERVICE::placeOrder - Cart retrieved: {} unique items, total quantity {}. Subtotal: {}",
                 cart.getTotalUniqueItems(), cart.getTotalQuantity(), cart.getSubtotalPrice());
 
-        // 1. Validate OrderRequest
+        // 1. Validate OrderRequest (cơ bản ở service, @Valid đã xử lý nhiều ở controller)
         if (orderRequest.getShippingAddress() == null) {
             log.error("SERVICE::placeOrder - ShippingAddress in OrderRequest is null.");
             throw new IllegalArgumentException("Thông tin địa chỉ giao hàng không được để trống.");
@@ -86,9 +90,9 @@ public class OrderServiceImpl implements OrderService {
 
         // 2. Tạo và lưu địa chỉ giao hàng
         Address shippingAddressEntity = addressMapper.requestToEntity(orderRequest.getShippingAddress());
-        if (shippingAddressEntity == null) {
-            log.error("SERVICE::placeOrder - AddressMapper returned null for shippingAddressEntity.");
-            throw new RuntimeException("Lỗi khi xử lý thông tin địa chỉ."); // Lỗi nội bộ
+        if (shippingAddressEntity == null) { // Kiểm tra nếu mapper trả về null (không mong muốn)
+            log.error("SERVICE::placeOrder - AddressMapper returned null for shippingAddressEntity. Check mapper logic.");
+            throw new RuntimeException("Lỗi nội bộ: Không thể tạo thực thể địa chỉ từ yêu cầu.");
         }
         Address savedAddress;
         try {
@@ -107,14 +111,15 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 3. Tạo đối tượng Order
-        Order order = new Order();
-        order.setUser(userEntity);
-        order.setAddress(savedAddress);
-        order.setTitle(orderRequest.getTitle());
-        order.setCustomerName(orderRequest.getCustomerName());
-        order.setCustomerPhone(orderRequest.getCustomerPhone());
-        order.setCustomerEmail(orderRequest.getCustomerEmail());
-        order.setStatus(ORDER_STATUS_PENDING);
+        Order order = Order.builder()
+                .user(userEntity)
+                .address(savedAddress)
+                .title(orderRequest.getTitle())
+                .customerName(orderRequest.getCustomerName())
+                .customerPhone(orderRequest.getCustomerPhone())
+                .customerEmail(orderRequest.getCustomerEmail())
+                .status(ORDER_STATUS_PENDING) // Trạng thái mặc định
+                .build();
         // createAt và updateAt sẽ được AbstractEntity tự động quản lý
 
         log.info("SERVICE::placeOrder - Order entity populated. Customer: {}, Phone: {}, Email: {}, AddressID: {}",
@@ -131,31 +136,40 @@ public class OrderServiceImpl implements OrderService {
             if (cartItemDto.getProductId() == null) {
                 throw new IllegalArgumentException("Một sản phẩm trong giỏ hàng không hợp lệ (thiếu ProductID).");
             }
+            // Kiểm tra số lượng và giá cả
             if (cartItemDto.getQuantity() == null || cartItemDto.getQuantity() <= 0) {
-                throw new IllegalArgumentException("Số lượng sản phẩm '" + (cartItemDto.getProductName() != null ? cartItemDto.getProductName() : "ID " + cartItemDto.getProductId()) + "' không hợp lệ.");
+                throw new IllegalArgumentException("Số lượng sản phẩm '" + (cartItemDto.getProductName() != null ? cartItemDto.getProductName() : "ID " + cartItemDto.getProductId()) + "' không hợp lệ (phải > 0).");
             }
             if (cartItemDto.getUnitPrice() == null || cartItemDto.getUnitPrice() < 0) {
-                throw new IllegalArgumentException("Đơn giá sản phẩm '" + (cartItemDto.getProductName() != null ? cartItemDto.getProductName() : "ID " + cartItemDto.getProductId()) + "' không hợp lệ.");
+                throw new IllegalArgumentException("Đơn giá sản phẩm '" + (cartItemDto.getProductName() != null ? cartItemDto.getProductName() : "ID " + cartItemDto.getProductId()) + "' không hợp lệ (phải >= 0).");
             }
 
             Product product = productRepository.findById(cartItemDto.getProductId())
-                    .orElseThrow(() -> new EntityNotFoundException("Sản phẩm '" + (cartItemDto.getProductName() != null ? cartItemDto.getProductName() : "ID " + cartItemDto.getProductId()) + "' không tồn tại."));
+                    .orElseThrow(() -> new EntityNotFoundException("Sản phẩm '" + (cartItemDto.getProductName() != null ? cartItemDto.getProductName() : "ID " + cartItemDto.getProductId()) + "' không tồn tại trong hệ thống."));
 
-            if (product.getStockQuantity() < cartItemDto.getQuantity()) {
-                throw new IllegalStateException("Sản phẩm '" + product.getName() + "' không đủ số lượng tồn kho ("+ product.getStockQuantity() +" còn lại, cần "+ cartItemDto.getQuantity() +").");
+            // Đảm bảo giá trong giỏ hàng khớp với giá hiện tại của sản phẩm (hoặc dùng giá giỏ hàng nếu muốn)
+            if (!product.getPrice().equals(cartItemDto.getUnitPrice())) {
+                log.warn("SERVICE::placeOrder - Giá sản phẩm {} thay đổi từ {} (trong giỏ) thành {} (hiện tại). Sử dụng giá hiện tại.",
+                        product.getName(), cartItemDto.getUnitPrice(), product.getPrice());
+                cartItemDto.setUnitPrice(product.getPrice()); // Cập nhật DTO với giá hiện tại của sản phẩm
             }
 
+            if (product.getStockQuantity() == null || product.getStockQuantity() < cartItemDto.getQuantity()) {
+                throw new IllegalStateException("Sản phẩm '" + product.getName() + "' không đủ số lượng tồn kho ("+ (product.getStockQuantity() != null ? product.getStockQuantity() : 0) +" còn lại, cần "+ cartItemDto.getQuantity() +").");
+            }
+
+            // Cập nhật tồn kho và số lượng đã bán
             product.setStockQuantity(product.getStockQuantity() - cartItemDto.getQuantity());
             product.setSoldQuantity((product.getSoldQuantity() != null ? product.getSoldQuantity() : 0) + cartItemDto.getQuantity());
-            productRepository.saveAndFlush(product); // saveAndFlush
-            log.debug("SERVICE::placeOrder - Updated stock for product ID: {}. New stock: {}", product.getId(), product.getStockQuantity());
+            productRepository.save(product); // save thôi, flush sẽ xảy ra ở cuối transaction
+            log.debug("SERVICE::placeOrder - Updated stock for product ID: {}. New stock: {}, New sold: {}", product.getId(), product.getStockQuantity(), product.getSoldQuantity());
 
             OrderDetail detail = OrderDetail.builder()
-                    .order(order) // Sẽ được gán sau khi order được save lần đầu nếu dùng cách này
+                    .order(order) // Sẽ được liên kết bởi Hibernate khi Order được save
                     .product(product)
                     .quantity(cartItemDto.getQuantity())
-                    .price(cartItemDto.getUnitPrice())
-                    .status(ORDER_STATUS_PENDING)
+                    .price(cartItemDto.getUnitPrice()) // Sử dụng giá tại thời điểm đặt hàng
+                    .status(ORDER_STATUS_PENDING) // Trạng thái cho từng chi tiết đơn hàng
                     .build();
             orderDetailsSet.add(detail);
             calculatedTotalPrice += (cartItemDto.getUnitPrice() * cartItemDto.getQuantity());
@@ -163,20 +177,14 @@ public class OrderServiceImpl implements OrderService {
 
         order.setOrderDetails(orderDetailsSet);
         order.setTotalPrice(calculatedTotalPrice);
-        // Gán lại order cho từng orderDetail sau khi order có thể đã có ID (nếu save order trước)
-        // Tuy nhiên, với CascadeType.ALL, Hibernate sẽ quản lý việc này khi order được save.
-        // Chỉ cần đảm bảo orderDetailsSet được gán vào order.
-        // for (OrderDetail detail : orderDetailsSet) {
-        //     detail.setOrder(order);
-        // }
-        log.info("SERVICE::placeOrder - Order entity prepared with {} details. Total price: {}", orderDetailsSet.size(), calculatedTotalPrice);
+        log.info("SERVICE::placeOrder - Order entity prepared with {} details. Calculated total price: {}", orderDetailsSet.size(), calculatedTotalPrice);
 
-        // 5. Lưu Order (OrderDetails sẽ được lưu nhờ cascade)
+        // 5. Lưu Order (OrderDetails sẽ được lưu nhờ CascadeType.ALL trên orderDetailsSet)
         Order savedOrder;
         try {
             log.debug("SERVICE::placeOrder - Attempting to save Order. CustomerName: {}, TotalPrice: {}, Details count: {}",
                     order.getCustomerName(), order.getTotalPrice(), order.getOrderDetails().size());
-            savedOrder = orderRepository.saveAndFlush(order); // saveAndFlush
+            savedOrder = orderRepository.saveAndFlush(order); // saveAndFlush để đồng bộ ngay với DB
             log.info("SERVICE::placeOrder - Order saved successfully with ID: {}", savedOrder.getId());
             if (savedOrder.getOrderDetails() != null) {
                 savedOrder.getOrderDetails().forEach(od -> log.debug("SERVICE::placeOrder - Saved OrderDetail ID: {}, Product ID: {}", od.getId(), od.getProduct() != null ? od.getProduct().getId() : "null_product"));
@@ -189,17 +197,17 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Lỗi không mong muốn khi lưu đơn hàng: " + e.getMessage(), e);
         }
 
-        // 6. Xóa giỏ hàng
+        // 6. Xóa giỏ hàng sau khi đặt hàng thành công
         try {
             cartItemService.clearCart(userId, orderRequest.getGuestCartId());
             log.info("SERVICE::placeOrder - Cart cleared for UserID: {} / GuestCartID: {}", userId, orderRequest.getGuestCartId());
         } catch (Exception e) {
-            log.error("SERVICE::placeOrder - Error clearing cart after order placement. UserID: {}, GuestCartID: {}. Error: {}. Order (ID: {}) was still created.",
+            log.error("SERVICE::placeOrder - Error clearing cart after order placement. UserID: {}, GuestCartID: {}. Error: {}. Order (ID: {}) was still created, manual cleanup may be needed.",
                     userId, orderRequest.getGuestCartId(), e.getMessage(), savedOrder.getId(), e);
-            // Không ném lại lỗi này để tránh rollback đơn hàng đã thành công
+            // Không ném lại lỗi này để tránh rollback đơn hàng đã thành công, chỉ log.
         }
 
-        // 7. Map sang DTO để trả về
+        // 7. Map sang DTO để trả về. Đảm bảo OrderMapper xử lý các mối quan hệ LAZY đã được tải EAGER trong Order.java
         log.info("SERVICE::placeOrder - Preparing to map savedOrder (ID: {}) to OrderResponse", savedOrder.getId());
         return orderMapper.toDTO(savedOrder);
     }
@@ -228,8 +236,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-    // ... (Các phương thức getOrderByIdForUser, getOrderHistoryForUser, và các phương thức admin giữ nguyên
-    //      nhưng cũng nên có logging chi tiết và ném Exception rõ ràng nếu có lỗi)
     @Override
     @Transactional(readOnly = true)
     public OrderResponse getOrderByIdForUser(Integer orderId, Integer userId) {
@@ -238,17 +244,24 @@ public class OrderServiceImpl implements OrderService {
             log.warn("SERVICE - getOrderByIdForUser - UserID không được null.");
             throw new IllegalArgumentException("UserID là bắt buộc để xem đơn hàng.");
         }
-        Order order = orderRepository.findById(orderId)
+        // Để đảm bảo load đúng đơn hàng của user đó
+        Order order = orderRepository.findById(orderId) // findById với EntityGraph từ OrderRepository
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy đơn hàng với ID: " + orderId));
 
-        if (order.getUser() != null && !order.getUser().getId().equals(userId)) {
-            log.warn("SERVICE - User {} cố gắng truy cập đơn hàng {} không thuộc về họ.", userId, orderId);
-            throw new AccessDeniedException("Bạn không có quyền xem đơn hàng này.");
+        // Kiểm tra quyền sở hữu đơn hàng
+        if (order.getUser() != null) { // Đơn hàng của người dùng đã đăng nhập
+            if (!order.getUser().getId().equals(userId)) {
+                log.warn("SERVICE - User {} cố gắng truy cập đơn hàng {} không thuộc về họ.", userId, orderId);
+                throw new AccessDeniedException("Bạn không có quyền xem đơn hàng này.");
+            }
+        } else { // Đơn hàng của khách vãng lai (order.getUser() == null)
+            // Nếu người dùng hiện tại đã đăng nhập (userId != null), nhưng lại cố gắng xem đơn hàng của khách
+            // (order.getUser() == null), thì từ chối. Nếu bạn muốn cho phép khách xem lại đơn hàng của họ
+            // mà không cần đăng nhập, bạn cần một cơ chế xác thực guestCartId ở đây.
+            log.warn("SERVICE - Người dùng đã xác thực {} cố gắng truy cập đơn hàng của khách {}. Từ chối.", userId, orderId);
+            throw new AccessDeniedException("Không thể truy cập đơn hàng của khách từ tài khoản đăng nhập.");
         }
-        if (order.getUser() == null && userId != null) {
-            log.warn("SERVICE - Người dùng đã xác thực {} cố gắng truy cập đơn hàng của khách {}.", userId, orderId);
-            throw new AccessDeniedException("Không thể truy cập đơn hàng của khách.");
-        }
+
         try {
             return orderMapper.toDTO(order);
         } catch (Exception e) {
@@ -261,10 +274,14 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public List<OrderResponse> getOrderHistoryForUser(Integer userId) {
         log.info("SERVICE - getOrderHistoryForUser - Fetching order history for User ID: {}", userId);
-        if (userId == null || !userRepository.existsById(userId)) {
+        if (userId == null) {
+            log.warn("SERVICE - getOrderHistoryForUser - UserID is null, cannot fetch history.");
+            throw new IllegalArgumentException("UserID là bắt buộc để lấy lịch sử đơn hàng.");
+        }
+        if (!userRepository.existsById(userId)) { // Kiểm tra sự tồn tại của user
             throw new EntityNotFoundException("Không tìm thấy người dùng với ID: " + userId);
         }
-        List<Order> orders = orderRepository.findByUserIdOrderByCreateAtDesc(userId);
+        List<Order> orders = orderRepository.findByUserIdOrderByCreateAtDesc(userId); // Sử dụng phương thức của Repository với EntityGraph
         return orders.stream().map(ord -> {
             try {
                 return orderMapper.toDTO(ord);
@@ -279,7 +296,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public OrderResponse getOrderByIdForAdmin(Integer orderId) {
         log.info("SERVICE - ADMIN - getOrderByIdForAdmin - Fetching order by ID: {}", orderId);
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findById(orderId) // findById với EntityGraph từ OrderRepository
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy đơn hàng với ID: " + orderId));
         try {
             return orderMapper.toDTO(order);
@@ -297,6 +314,7 @@ public class OrderServiceImpl implements OrderService {
         if (pageable.getSort().isUnsorted()) {
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("createAt").descending());
         }
+        // Sử dụng findAll với EntityGraph từ OrderRepository
         Page<Order> orderPage = orderRepository.findAll(pageable);
         try {
             return orderPage.map(orderMapper::toDTO);
@@ -312,14 +330,27 @@ public class OrderServiceImpl implements OrderService {
         log.info("SERVICE - ADMIN - updateOrderStatusForAdmin - Order ID: {} to status: {}", orderId, newStatus);
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy đơn hàng với ID: " + orderId));
-        // TODO: Thêm validation cho newStatus
+
+        if (!isValidOrderStatus(newStatus)) {
+            throw new IllegalArgumentException("Trạng thái đơn hàng '" + newStatus + "' không hợp lệ.");
+        }
+
         order.setStatus(newStatus);
-        Order updatedOrder = orderRepository.save(order); // Không cần saveAndFlush ở đây trừ khi có lý do đặc biệt
+        Order updatedOrder = orderRepository.save(order);
         try {
             return orderMapper.toDTO(updatedOrder);
         } catch (Exception e) {
             log.error("SERVICE - ADMIN - updateOrderStatusForAdmin - Lỗi mapping Order ID {} to DTO: {}", updatedOrder.getId(), e.getMessage(), e);
             throw new RuntimeException("Lỗi khi cập nhật trạng thái đơn hàng: " + e.getMessage(), e);
         }
+    }
+
+    private boolean isValidOrderStatus(String status) {
+        return status.equals(ORDER_STATUS_PENDING) ||
+                status.equals(ORDER_STATUS_PROCESSING) ||
+                status.equals(ORDER_STATUS_SHIPPED) ||
+                status.equals(ORDER_STATUS_DELIVERED) ||
+                status.equals(ORDER_STATUS_CANCELLED) ||
+                status.equals(ORDER_STATUS_FAILED);
     }
 }

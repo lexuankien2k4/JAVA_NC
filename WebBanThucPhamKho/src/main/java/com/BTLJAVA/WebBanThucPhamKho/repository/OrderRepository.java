@@ -1,7 +1,6 @@
 package com.BTLJAVA.WebBanThucPhamKho.repository;
 
 import com.BTLJAVA.WebBanThucPhamKho.entity.Order;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -10,11 +9,14 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Integer> {
+    // Load tất cả các mối quan hệ cần thiết khi lấy lịch sử đơn hàng của người dùng
     List<Order> findByUserIdOrderByCreateAtDesc(Integer userId);
+
 
     // Thống kê doanh thu theo ngày
     @Query("SELECT FUNCTION('DATE', o.createAt), SUM(o.totalPrice) FROM Order o WHERE FUNCTION('DATE', o.createAt) BETWEEN :startDate AND :endDate GROUP BY FUNCTION('DATE', o.createAt)")

@@ -7,8 +7,8 @@ import com.BTLJAVA.WebBanThucPhamKho.dto.response.CartResponse;
 import com.BTLJAVA.WebBanThucPhamKho.entity.CartItem;
 import com.BTLJAVA.WebBanThucPhamKho.entity.Product;
 import com.BTLJAVA.WebBanThucPhamKho.entity.User;
-import com.BTLJAVA.WebBanThucPhamKho.mapper.CartItemMapper;
-import com.BTLJAVA.WebBanThucPhamKho.repository.CartItemRepository;
+import com.BTLJAVA.WebBanThucPhamKho.mapper.CartItemMapper; // Đảm bảo bạn có CartItemMapper
+import com.BTLJAVA.WebBanThucPhamKho.repository.CartItemRepository; // Đảm bảo bạn có CartItemRepository
 import com.BTLJAVA.WebBanThucPhamKho.repository.ProductRepository;
 import com.BTLJAVA.WebBanThucPhamKho.repository.UserRepository;
 import com.BTLJAVA.WebBanThucPhamKho.service.CartItemService; // Giữ tên interface service của bạn
@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections; // Để tạo danh sách rỗng
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -27,11 +27,11 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CartItemServiceImpl implements CartItemService { // Giữ tên class của bạn
+public class CartItemServiceImpl implements CartItemService {
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
-    private final CartItemMapper cartItemMapper;
+    private final CartItemMapper cartItemMapper; // Đảm bảo bạn có CartItemMapper
 
     @Override
     @Transactional
@@ -48,7 +48,7 @@ public class CartItemServiceImpl implements CartItemService { // Giữ tên clas
 
         User userEntity = null;
         if (userId != null) {
-            userEntity = userRepository.findById(userId)
+            userEntity = userRepository.findById(userId) // User entity có thể là LAZY
                     .orElseThrow(() -> {
                         log.error("SERVICE - addItemToCart - User not found with ID: {}", userId);
                         return new EntityNotFoundException("Không tìm thấy người dùng với ID: " + userId);
@@ -80,7 +80,7 @@ public class CartItemServiceImpl implements CartItemService { // Giữ tên clas
             log.info("SERVICE - addItemToCart - Product ID {} already in cart. Current Qty: {}, Requested to add: {}. Updating quantity.",
                     product.getId(), cartItemToSave.getQuantity(), requestedQuantity);
             int newQuantity = cartItemToSave.getQuantity() + requestedQuantity;
-            if (product.getStockQuantity() < newQuantity) {
+            if (product.getStockQuantity() == null || product.getStockQuantity() < newQuantity) { // Kiểm tra null cho stock
                 log.warn("SERVICE - addItemToCart - Not enough stock for Product ID {}. Requested total: {}, Stock: {}",
                         product.getId(), newQuantity, product.getStockQuantity());
                 throw new RuntimeException("Số lượng sản phẩm " + product.getName() + " không đủ trong kho.");
@@ -89,7 +89,7 @@ public class CartItemServiceImpl implements CartItemService { // Giữ tên clas
             cartItemToSave.setPrice(product.getPrice() * newQuantity); // Cập nhật tổng tiền dòng
         } else {
             log.info("SERVICE - addItemToCart - Product ID {} not in cart. Creating new cart item.", product.getId());
-            if (product.getStockQuantity() < requestedQuantity) {
+            if (product.getStockQuantity() == null || product.getStockQuantity() < requestedQuantity) { // Kiểm tra null cho stock
                 log.warn("SERVICE - addItemToCart - Not enough stock for new Product ID {}. Requested: {}, Stock: {}",
                         product.getId(), requestedQuantity, product.getStockQuantity());
                 throw new RuntimeException("Số lượng sản phẩm " + product.getName() + " không đủ trong kho.");
@@ -116,10 +116,10 @@ public class CartItemServiceImpl implements CartItemService { // Giữ tên clas
 
         if (userId != null) {
             log.info("SERVICE - getCart - Fetching cart for User ID: {}", userId);
-            cartItems = cartItemRepository.findByUserId(userId);
+            cartItems = cartItemRepository.findByUserId(userId); // TRUY VẤN THỰC TẾ
         } else if (guestCartId != null && !guestCartId.trim().isEmpty()) {
             log.info("SERVICE - getCart - Fetching cart for GuestCartID: {}", guestCartId);
-            cartItems = cartItemRepository.findByGuestCartId(guestCartId);
+            cartItems = cartItemRepository.findByGuestCartId(guestCartId); // TRUY VẤN THỰC TẾ
             currentGuestCartIdForResponse = guestCartId;
         } else {
             log.info("SERVICE - getCart - No UserID or GuestCartID provided. Returning empty cart.");
@@ -130,6 +130,8 @@ public class CartItemServiceImpl implements CartItemService { // Giữ tên clas
         List<CartItemResponse> itemResponses = cartItems.stream()
                 .map(cartItem -> {
                     try {
+                        // Đảm bảo CartItemMapper có thể xử lý các mối quan hệ LAZY (product) nếu nó không EAGER
+                        // Cần thêm EntityGraph trong CartItemRepository nếu product là LAZY
                         return cartItemMapper.toDTO(cartItem);
                     } catch (Exception e) {
                         log.error("SERVICE - getCart - Error mapping CartItem ID {} to DTO: {}", cartItem.getId(), e.getMessage(), e);
@@ -141,7 +143,6 @@ public class CartItemServiceImpl implements CartItemService { // Giữ tên clas
         log.debug("SERVICE - getCart - Mapped {} CartItemResponses.", itemResponses.size());
 
         int totalQuantity = itemResponses.stream().mapToInt(CartItemResponse::getQuantity).sum();
-        // Đảm bảo lineTotal không null trước khi tính tổng
         int subtotalPrice = itemResponses.stream().mapToInt(item -> item.getLineTotal() != null ? item.getLineTotal() : 0).sum();
 
         CartResponse cartResponse = CartResponse.builder()
@@ -168,6 +169,7 @@ public class CartItemServiceImpl implements CartItemService { // Giữ tên clas
 
         // Xác thực quyền sở hữu
         if (userId != null) { // Người dùng đã đăng nhập
+            // Kiểm tra userEntity null nếu user không tồn tại trong DB nhưng có userId
             if (cartItem.getUser() == null || !cartItem.getUser().getId().equals(userId)) {
                 log.warn("SERVICE - updateItemQuantity - UserID: {} attempted to update CartItemID: {} not belonging to them.", userId, cartItemId);
                 throw new SecurityException("Bạn không có quyền cập nhật mặt hàng này (user mismatch).");
@@ -192,7 +194,7 @@ public class CartItemServiceImpl implements CartItemService { // Giữ tên clas
                 log.error("SERVICE - updateItemQuantity - Product is null for CartItemID: {}. Cannot update.", cartItemId);
                 throw new EntityNotFoundException("Sản phẩm liên kết với mặt hàng trong giỏ không tồn tại.");
             }
-            if (product.getStockQuantity() < quantityRequest.getQuantity()) {
+            if (product.getStockQuantity() == null || product.getStockQuantity() < quantityRequest.getQuantity()) { // Kiểm tra null cho stock
                 throw new RuntimeException("Số lượng sản phẩm " + product.getName() + " không đủ trong kho.");
             }
             cartItem.setQuantity(quantityRequest.getQuantity());
@@ -232,10 +234,10 @@ public class CartItemServiceImpl implements CartItemService { // Giữ tên clas
     public CartResponse clearCart(Integer userId, String guestCartId) {
         if (userId != null) {
             log.info("SERVICE - Clearing cart for UserID: {}", userId);
-            cartItemRepository.deleteByUserId(userId);
+            cartItemRepository.deleteByUserId(userId); // TRUY VẤN THỰC TẾ
         } else if (guestCartId != null && !guestCartId.trim().isEmpty()) {
             log.info("SERVICE - Clearing cart for GuestCartID: {}", guestCartId);
-            cartItemRepository.deleteByGuestCartId(guestCartId);
+            cartItemRepository.deleteByGuestCartId(guestCartId); // TRUY VẤN THỰC TẾ
         } else {
             log.warn("SERVICE - clearCart called without userId or guestCartId.");
         }
@@ -256,7 +258,7 @@ public class CartItemServiceImpl implements CartItemService { // Giữ tên clas
             return getCart(userId, null); // Trả về giỏ hàng hiện tại của người dùng
         }
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findById(userId) // User entity có thể là LAZY
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng với ID: " + userId));
 
         List<CartItem> guestCartItems = cartItemRepository.findByGuestCartId(guestCartId);
@@ -284,10 +286,10 @@ public class CartItemServiceImpl implements CartItemService { // Giữ tên clas
                         guestItem.getProduct().getId(), guestItem.getId(), itemToSaveForUser.getId());
 
                 int newQuantity = itemToSaveForUser.getQuantity() + guestItem.getQuantity();
-                if (itemToSaveForUser.getProduct().getStockQuantity() < newQuantity) {
+                if (itemToSaveForUser.getProduct().getStockQuantity() == null || itemToSaveForUser.getProduct().getStockQuantity() < newQuantity) { // Kiểm tra null cho stock
                     log.warn("SERVICE - Merge: Not enough stock for Product ID {}. Requested total: {}, Stock: {}. Setting to max available for user item.",
                             guestItem.getProduct().getId(), newQuantity, itemToSaveForUser.getProduct().getStockQuantity());
-                    newQuantity = itemToSaveForUser.getProduct().getStockQuantity();
+                    newQuantity = itemToSaveForUser.getProduct().getStockQuantity() != null ? itemToSaveForUser.getProduct().getStockQuantity() : 0; // Giới hạn bằng stock nếu vượt quá
                 }
                 itemToSaveForUser.setQuantity(newQuantity);
                 itemToSaveForUser.setPrice(itemToSaveForUser.getProduct().getPrice() * newQuantity);
@@ -301,10 +303,10 @@ public class CartItemServiceImpl implements CartItemService { // Giữ tên clas
                 guestItem.setUser(user);
                 guestItem.setGuestCartId(null); // Quan trọng: Xóa guestCartId
                 // Đảm bảo số lượng không vượt quá tồn kho
-                if (guestItem.getProduct().getStockQuantity() < guestItem.getQuantity()) {
+                if (guestItem.getProduct().getStockQuantity() == null || guestItem.getProduct().getStockQuantity() < guestItem.getQuantity()) { // Kiểm tra null cho stock
                     log.warn("SERVICE - Merge: Not enough stock for new Product ID {}. Requested: {}, Stock: {}. Setting to max available.",
                             guestItem.getProduct().getId(), guestItem.getQuantity(), guestItem.getProduct().getStockQuantity());
-                    guestItem.setQuantity(guestItem.getProduct().getStockQuantity());
+                    guestItem.setQuantity(guestItem.getProduct().getStockQuantity() != null ? guestItem.getProduct().getStockQuantity() : 0); // Giới hạn bằng stock
                     // Cập nhật lại price nếu quantity thay đổi
                     guestItem.setPrice(guestItem.getProduct().getPrice() * guestItem.getQuantity());
                 }
@@ -312,9 +314,6 @@ public class CartItemServiceImpl implements CartItemService { // Giữ tên clas
                 log.info("SERVICE - Merge: GuestItem ID {} successfully reassigned to UserID {}.", guestItem.getId(), userId);
             }
         }
-        // Sau khi vòng lặp, tất cả guestItems hợp lệ đã được xử lý (hoặc gán cho user, hoặc số lượng của chúng được cộng dồn và chúng bị xóa).
-        // Không cần phải xóa lại `cartItemRepository.deleteByGuestCartId(guestCartId);` nữa nếu logic trên đúng.
-
         log.info("SERVICE - Cart merged successfully for UserID: {}", userId);
         return getCart(userId, null);
     }

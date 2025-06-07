@@ -18,7 +18,7 @@ public class Order extends AbstractEntity<Integer> {
     @JoinColumn(name = "user_id", nullable = true) // Đã đúng: cho phép null cho guest
     private User user;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "address_id", referencedColumnName = "id", nullable = false) // Địa chỉ là bắt buộc
     private Address address;
 
@@ -41,6 +41,6 @@ public class Order extends AbstractEntity<Integer> {
     private String customerEmail;
 
     // FetchType.EAGER và CascadeType.ALL là quan trọng ở đây
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<OrderDetail> orderDetails = new HashSet<>();
 }

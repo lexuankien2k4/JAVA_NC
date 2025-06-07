@@ -91,7 +91,7 @@ public class OrderController {
         }
     }
 
-    @PreAuthorize("isAuthenticated()")
+
     @GetMapping("/my-history")
     public ResponseData<List<OrderResponse>> getMyOrderHistory() { // Bỏ Authentication authentication nếu không dùng đến trực tiếp
         Integer userId = getCurrentUserIdOptional();
@@ -126,7 +126,7 @@ public class OrderController {
         }
     }
 
-    @PreAuthorize("isAuthenticated()")
+
     @GetMapping("/{orderId}")
     public ResponseData<OrderResponse> getMyOrderById(@PathVariable Integer orderId) { // Bỏ Authentication authentication
         Integer userId = getCurrentUserIdOptional();
