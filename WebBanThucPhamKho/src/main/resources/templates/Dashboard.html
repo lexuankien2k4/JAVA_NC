@@ -5,180 +5,206 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-  <link rel="stylesheet" href="/css/qlsp.css">
-  <title>Quản trị viên - Quản lý Sản phẩm</title>
+  <link rel="stylesheet" href="/css/qlsp.css"> <!-- Đảm bảo đường dẫn này đúng -->
+  <title>Quản trị viên - Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Thêm Chart.js -->
   <style>
-    /* CSS for Modal */
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0,0,0,0.5);
+    /* CSS cho Dashboard chính */
+    .insights {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.6rem;
+      margin-top: 1rem;
     }
 
-    .modal-content {
-        background-color: #fefefe;
-        margin: 5% auto;
-        padding: 25px;
-        border: 1px solid #888;
-        width: 90%;
-        max-width: 600px;
-        border-radius: 8px;
-        position: relative;
-        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    .insights > div {
+      background: var(--color-white);
+      padding: var(--card-padding);
+      border-radius: var(--card-border-radius);
+      margin-top: 1rem;
+      box-shadow: var(--box-shadow);
+      transition: all 0.3s ease;
     }
 
-    .close-button {
-        color: #aaa;
-        font-size: 28px;
-        font-weight: bold;
-        position: absolute;
-        top: 10px;
-        right: 20px;
+    .insights > div:hover {
+      box-shadow: none;
     }
 
-    .close-button:hover,
-    .close-button:focus {
-        color: black;
-        text-decoration: none;
-        cursor: pointer;
+    .insights > div span {
+      background: var(--color-primary);
+      padding: 0.5rem;
+      border-radius: 50%;
+      color: var(--color-white);
+      font-size: 2rem;
     }
 
-    .modal-content label {
-        display: block;
-        margin-top: 10px;
-        margin-bottom: 5px;
-        font-weight: bold;
+    .insights > div.expenses span {
+      background: var(--color-danger);
     }
 
-    .modal-content input[type="text"],
-    .modal-content input[type="number"],
-    .modal-content input[type="url"],
-    .modal-content input[type="date"] {
-        width: 100%;
-        padding: 8px;
-        margin-bottom: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
+    .insights > div.income span {
+      background: var(--color-success);
     }
 
-    .modal-content button {
-        padding: 10px 15px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
+    .insights > div .middle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
-    .modal-content .save-btn {
-        background-color: #4CAF50; /* Green */
-        color: white;
-    }
-    .modal-content .save-btn:hover {
-        background-color: #45a049;
+    .insights > div .middle h1 {
+      font-size: 2.2rem;
     }
 
-    .modal-content .cancel-btn {
-        background-color: #f44336; /* Red */
-        color: white;
-        margin-left: 10px;
-    }
-     .modal-content .cancel-btn:hover {
-        background-color: #da190b;
+    .insights h3 {
+      margin: 1rem 0 0.6rem;
+      font-size: 1rem;
     }
 
-    /* Toast Notification Styling */
-    .toast {
-        display: none;
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        min-width: 250px;
-        background-color: #333;
-        color: #fff;
-        text-align: center;
-        border-radius: 5px;
-        padding: 16px;
-        z-index: 1001;
-        font-size: 17px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    }
-    .toast.success {
-        background-color: #4CAF50;
-    }
-    .toast.error {
-        background-color: #f44336;
+    .insights .progress {
+      position: relative;
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
     }
 
-    /* Table Styling */
-    #productTable {
-        table-layout: fixed;
-        width: 100%;
-        border-collapse: collapse;
+    .insights svg {
+      width: 70%;
+      height: 70%;
     }
-    #productTable td, #productTable th {
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        padding: 10px 8px;
-        border: 1px solid #ddd;
-        text-align: left;
-    }
-    #productTable th {
-        background-color: #f2f2f2;
-        font-weight: bold;
-    }
-    #productTable img {
-        max-width: 60px;
-        height: auto;
-        border-radius: 4px;
-        display: block;
-        margin: auto;
-    }
-    .action-buttons button {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 5px;
-        margin: 0 2px;
-        font-size: 1.1em;
-    }
-    .action-buttons .edit-btn { color: #ffa500; }
-    .action-buttons .delete-btn { color: #f44336; }
-    .action-buttons { text-align: center; }
 
+    .insights circle {
+      fill: none;
+      stroke-width: 10;
+      stroke-linecap: round;
+      transform: translate(5px, 5px);
+    }
 
-    /* Pagination Styling */
-    .pagination-controls {
-        padding: 15px 0;
-        text-align: center;
+    .insights .progress .circle-bg {
+        stroke: var(--color-info-light);
     }
-    .pagination-controls button {
-        padding: 8px 12px;
-        margin: 0 5px;
-        border: 1px solid #ddd;
-        background-color: #f9f9f9;
-        cursor: pointer;
-        border-radius: 4px;
-        /* THÊM DÒNG SAU ĐỂ ĐỔI MÀU CHỮ NÚT PHÂN TRANG */
-        color: #000000; /* Màu đen cho chữ */
+
+    .insights .progress .circle-progress {
+        stroke: var(--color-primary);
+        transition: stroke-dashoffset 0.6s ease-in-out; /* Add transition */
     }
-    .pagination-controls button:hover:not(:disabled) {
-        background-color: #e9e9e9;
+
+    .insights .progress.expenses .circle-progress {
+        stroke: var(--color-danger);
     }
-    .pagination-controls button:disabled {
-        background-color: #eee;
-        color: #000000; /* Chữ màu xám khi bị vô hiệu hóa */
-        cursor: not-allowed;
+
+    .insights .progress.income .circle-progress {
+        stroke: var(--color-success);
     }
-    .pagination-controls span {
-        padding: 8px 12px;
-        margin: 0 5px;
+
+    .insights .progress .number {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .insights small {
+      display: block;
+      margin-top: 1.3rem;
+    }
+
+    /* Recent Orders Table */
+    .recent-orders {
+      margin-top: 3rem;
+    }
+
+    .recent-orders h2 {
+      margin-bottom: 0.8rem;
+    }
+
+    .recent-orders table {
+      background: var(--color-white);
+      width: 100%;
+      border-radius: var(--card-border-radius);
+      padding: var(--card-padding);
+      text-align: center;
+      box-shadow: var(--box-shadow);
+      transition: all 0.3s ease;
+    }
+
+    .recent-orders table:hover {
+      box-shadow: none;
+    }
+
+    .recent-orders table tbody td {
+      height: 2.8rem;
+      border-bottom: 1px solid var(--color-info-light);
+      color: var(--color-dark-variant);
+    }
+
+    .recent-orders table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .recent-orders a {
+      text-align: center;
+      display: block;
+      margin: 1rem auto;
+      color: var(--color-primary);
+    }
+
+    /* Right Section - Updates */
+    .right-section {
+      margin-top: 1.4rem;
+    }
+
+    .right-section .recent-updates {
+      background: var(--color-white);
+      padding: var(--card-padding);
+      border-radius: var(--card-border-radius);
+      box-shadow: var(--box-shadow);
+      transition: all 0.3s ease;
+    }
+
+    .right-section .recent-updates:hover {
+      box-shadow: none;
+    }
+
+    .right-section .recent-updates .updates {
+      margin-top: 1rem;
+    }
+
+    .right-section .recent-updates .update {
+      display: grid;
+      grid-template-columns: 2.6rem auto;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Responsive adjustments */
+    @media screen and (max-width: 1200px) {
+        .insights {
+            grid-template-columns: 1fr; /* Stack insights on medium screens */
+            gap: 1rem;
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        .insights {
+            grid-template-columns: 1fr;
+        }
+        .recent-orders {
+            width: 100%; /* Full width for table on small screens */
+            position: relative; /* For overflow scrolling */
+            margin: 3rem 0 0 0;
+        }
+        .recent-orders table {
+            width: 100%; /* Ensure table takes full width of its container */
+            white-space: nowrap; /* Prevent text wrapping in table cells */
+        }
+        .recent-orders .table-scroll-wrapper {
+            overflow-x: auto; /* Enable horizontal scrolling for the table */
+        }
     }
   </style>
 </head>
@@ -235,7 +261,7 @@
         <span class="material-icons-sharp">manage_accounts</span>
         <h3>Admin</h3>
       </a>
-      <a href="#">
+      <a href="#" id="logoutButton">
         <span class="material-icons-sharp">logout</span>
         <h3>Logout</h3>
       </a>
@@ -244,9 +270,10 @@
 
   <main>
     <div id="dashboard-content" class="active">
-      <div class="main-nemu"> <h1>QUẢN LÝ SẢN PHẨM</h1>
+      <div class="main-nemu">
+        <h1>DASHBOARD</h1>
         <div class="nav">
-          <button id="menu-btn">
+          <button id="menu-btn-sidebar">
             <span class="material-icons-sharp">menu</span>
           </button>
           <div class="dark-mode">
@@ -255,53 +282,452 @@
           </div>
           <div class="profile">
             <div class="info">
-              <p>Hey, <b id="name-id">Reza</b></p>
-              <small class="text-muted" id="office">Admin</small>
+              <p>Hey, <b id="adminNameDisplay">Admin</b></p>
+              <small class="text-muted" id="office">Quản trị viên</small>
             </div>
             <div class="profile-photo">
-              <a href="#"> <img src="https://placehold.co/40x40/EFEFEF/AAAAAA&text=AVT" alt="Ảnh đại diện">
-              </a>
+              <a href="#"> <img src="https://placehold.co/40x40/EFEFEF/AAAAAA&text=AVT" alt="Ảnh đại diện"></a>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="dashboard">
-        <div class="student">
-          <div class="student-controller">
-            <div class="controller-top">
-              <div class="top-right">
-                <button id="addProductBtn" class="add-button-table" style="background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-right: 10px; border: none; cursor:pointer;">
-                  <i class="fas fa-plus mr-2"></i>Thêm Sản Phẩm Mới
-                </button>
-                <button class="export"><i class="fas fa-file-excel"></i>Export Excel</button>
-                <button class="import"><i class="fas fa-file-import"></i>Import Excel</button>
-              </div>
+      <!-- ANALYTICS SECTION -->
+      <div class="insights">
+        <div class="sales">
+          <span class="material-icons-sharp">analytics</span>
+          <div class="middle">
+            <div class="left">
+              <h3>Tổng Doanh Thu</h3>
+              <h1 id="totalRevenue">0 ₫</h1>
+            </div>
+            <div class="progress">
+              <svg>
+                <circle cx="38" cy="38" r="36" class="circle-bg"></circle>
+                <circle cx="38" cy="38" r="36" class="circle-progress" id="revenueProgress" style="stroke-dasharray: 226; stroke-dashoffset: 226;"></circle>
+              </svg>
+              <div class="number"><p id="revenuePercent">0%</p></div>
             </div>
           </div>
-
-          <div class="table-container">
-            <h2>Danh Sách Sản Phẩm</h2>
-            <div id="messageDisplayGlobal" class="message-area hidden" style="padding: 10px; margin: 10px 0; border-radius: 5px; text-align: center;"></div>
-
+          <small class="text-muted">Đang cập nhật...</small>
+        </div>
+        <div class="expenses">
+          <span class="material-icons-sharp">receipt_long</span>
+          <div class="middle">
+            <div class="left">
+              <h3>Tổng Đơn Hàng</h3>
+              <h1 id="totalOrders">0</h1>
+            </div>
+            <div class="progress">
+              <svg>
+                <circle cx="38" cy="38" r="36" class="circle-bg"></circle>
+                <circle cx="38" cy="38" r="36" class="circle-progress" id="ordersProgress" style="stroke-dasharray: 226; stroke-dashoffset: 226;"></circle>
+              </svg>
+              <div class="number"><p id="ordersPercent">0%</p></div>
+            </div>
           </div>
+          <small class="text-muted">Đang cập nhật...</small>
+        </div>
+        <div class="income">
+          <span class="material-icons-sharp">stacked_line_chart</span>
+          <div class="middle">
+            <div class="left">
+              <h3>Tổng Sản Phẩm</h3>
+              <h1 id="totalProducts">0</h1>
+            </div>
+            <div class="progress">
+              <svg>
+                <circle cx="38" cy="38" r="36" class="circle-bg"></circle>
+                <circle cx="38" cy="38" r="36" class="circle-progress" id="productsProgress" style="stroke-dasharray: 226; stroke-dashoffset: 226;"></circle>
+              </svg>
+              <div class="number"><p id="productsPercent">0%</p></div>
+            </div>
+          </div>
+          <small class="text-muted">Đang cập nhật...</small>
         </div>
       </div>
+      <!-- END ANALYTICS SECTION -->
+
+      <!-- RECENT ORDERS SECTION -->
+      <div class="recent-orders">
+        <h2>Đơn Hàng Gần Đây</h2>
+        <div class="table-scroll-wrapper"> <!-- Added wrapper for horizontal scroll on small screens -->
+          <table>
+            <thead>
+            <tr>
+              <th>Mã Đơn Hàng</th>
+              <th>Tên Khách Hàng</th>
+              <th>Tổng Tiền</th>
+              <th>Trạng Thái</th>
+              <th>Thời gian Đặt</th>
+              <th>Hành Động</th>
+            </tr>
+            </thead>
+            <tbody id="recentOrdersTableBody">
+            <tr><td colspan="6" class="text-center py-4">Đang tải đơn hàng gần đây...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <a href="/admin/order-management">Hiển thị tất cả</a>
+      </div>
+      <!-- END RECENT ORDERS SECTION -->
+
+      <!-- CHART SECTION -->
+      <div class="recent-orders"> <!-- Reusing .recent-orders class for styling consistency -->
+        <h2>Doanh Thu Tháng Hiện Tại</h2>
+        <div style="width: 80%; margin: 20px auto; height: 300px;"> <!-- Added height for chart -->
+          <canvas id="monthlyRevenueChart"></canvas>
+        </div>
+      </div>
+      <!-- END CHART SECTION -->
+
     </div>
   </main>
-</div>
-
-<div id="productModal" class="modal">
-  <div class="modal-content">
-    <span class="close-button" id="closeModalBtn">&times;</span>
-    <h2 id="modalTitle" style="text-align: center; margin-bottom: 20px; font-size: 1.5em;">Thêm Sản Phẩm Mới</h2>
-
-  </div>
 </div>
 
 <div id="toast" class="toast">
   <span id="toastMessage"></span>
 </div>
 
+<script>
+  // API Base URL
+  const API_DASHBOARD_URL = '/api/dashboard'; // Bạn cần tạo controller cho dashboard
+  const API_ORDER_ADMIN_URL = '/api/v1/orders/admin'; // API cho đơn hàng admin
+  const API_PRODUCT_URL = '/api/v1/product'; // API cho sản phẩm
+
+  // DOM Elements
+  let adminNameDisplayEl, logoutButtonEl,
+      totalRevenueEl, totalOrdersEl, totalProductsEl,
+      revenueProgressEl, ordersProgressEl, productsProgressEl,
+      revenuePercentEl, ordersPercentEl, productsPercentEl,
+      recentOrdersTableBodyEl,
+      monthlyRevenueChartCanvas; // For Chart.js
+
+  let toastEl, toastMessageEl;
+
+  // --- Token Management (Lấy từ Quanlysanpham.html) ---
+  function getToken() { return localStorage.getItem('accessToken'); }
+  function removeToken() {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('loggedInUser');
+      console.log("Tokens and user info removed.");
+  }
+  function getLoggedInUser() {
+      const userData = localStorage.getItem('loggedInUser');
+      try { return userData ? JSON.parse(userData) : null; }
+      catch (e) { console.error("Lỗi phân tích loggedInUser", e); return null; }
+  }
+
+  // --- Utility Functions (Lấy từ Quanlysanpham.html) ---
+  function showToast(message, isSuccess = true) {
+      if (!toastEl || !toastMessageEl) { console.warn("Toast elements not found for:", message); return; }
+      toastMessageEl.textContent = message;
+      toastEl.className = `toast ${isSuccess ? 'success' : 'error'}`;
+      toastEl.style.display = 'block';
+      setTimeout(() => { if(toastEl) toastEl.style.display = 'none'; }, 3000);
+  }
+  function formatPrice(price) {
+      const numPrice = Number(price);
+      if(price == null || isNaN(numPrice)) return '0 ₫';
+      return numPrice.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+  }
+  function formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      try {
+          const d = new Date(dateString);
+          return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+      } catch(e) {
+          console.warn("Error formatting date:", dateString, e); return 'N/A';
+      }
+  }
+
+  // --- API Call Wrapper (Lấy từ Quanlysanpham.html) ---
+  async function makeApiCall(url, method = 'GET', body = null, requiresAuth = true) {
+      const headers = { 'Content-Type': 'application/json' };
+      const token = getToken();
+
+      if (requiresAuth) {
+          if (token) {
+              headers['Authorization'] = `Bearer ${token}`;
+          } else {
+              console.warn(`API Call to ${url} requires auth but no token found. Redirecting to login.`);
+              showToast('Vui lòng đăng nhập để tiếp tục.', false);
+              window.location.href = '/login';
+              throw new Error('Unauthorized - No token, redirecting');
+          }
+      }
+      const config = { method: method, headers: headers };
+      if (body && (method === 'POST' || method === 'PATCH' || method === 'PUT' || method === 'DELETE')) {
+          config.body = JSON.stringify(body);
+      }
+      console.log(`DashboardPage - Sending ${method} to ${url}`, config.body ? `with body: ${config.body.substring(0,100)}...` : '');
+      const response = await fetch(url, config);
+      console.log(`DashboardPage - Raw response from ${url} - Status: ${response.status}, Content-Type: ${response.headers.get('Content-Type')}`);
+
+      if (response.status === 401 && token) {
+          showToast('Phiên đăng nhập không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.', false);
+          removeToken();
+          updateAdminAuthStatusOnHeader(); // Update header
+          window.location.href = '/login';
+          throw new Error('Unauthorized');
+      }
+      if (response.status === 403) { // This is 403 Forbidden
+           showToast('Bạn không có quyền thực hiện hành động này.', false);
+           throw new Error('Forbidden');
+      }
+      if (!response.ok) { // Catch other non-2xx responses
+          let errorMsg = `Lỗi server (${response.status})`;
+          try {
+              if (response.headers.get("content-type")?.includes("application/json")) {
+                  const errorData = await response.json(); errorMsg = errorData.message || errorData.error || errorMsg;
+              } else { errorMsg = await response.text(); }
+          } catch (e) {}
+          throw new Error(errorMsg);
+      }
+      return response;
+  }
+
+  // --- Fetch Dashboard Data ---
+  async function fetchDashboardData() {
+      // Fetch total revenue, orders, products counts
+      try {
+          const revenueResponse = await makeApiCall('/api/statistics/revenue/yearly'); // Re-using existing API
+          const revenueData = await revenueResponse.json();
+          if (revenueData.status === 200 && revenueData.data) {
+              const currentYear = new Date().getFullYear().toString();
+              const totalYearlyRevenue = revenueData.data[currentYear] || 0; // Get current year's revenue
+              if (totalRevenueEl) totalRevenueEl.textContent = formatPrice(totalYearlyRevenue);
+              updateProgressCircle(revenueProgressEl, revenuePercentEl, 100); // Set to 100% or based on target
+          } else { throw new Error(revenueData.message || "Không thể tải doanh thu."); }
+      } catch (error) {
+          console.error("Lỗi tải tổng doanh thu:", error);
+          showToast(`Lỗi tải tổng doanh thu: ${error.message}`, false);
+      }
+
+      // Fetch total orders (You'll need a new API for this, for now, use a placeholder or count all from admin/all)
+      try {
+          const ordersResponse = await makeApiCall(`${API_ORDER_ADMIN_URL}/all?page=0&size=1`); // Just to get totalElements if API supports it
+          const ordersData = await ordersResponse.json();
+          if (ordersData.status === 200 && ordersData.data && ordersData.data.totalElements != null) {
+              if (totalOrdersEl) totalOrdersEl.textContent = ordersData.data.totalElements;
+              updateProgressCircle(ordersProgressEl, ordersPercentEl, 100);
+          } else { throw new Error(ordersData.message || "Không thể tải tổng đơn hàng."); }
+      } catch (error) {
+          console.error("Lỗi tải tổng đơn hàng:", error);
+          showToast(`Lỗi tải tổng đơn hàng: ${error.message}`, false);
+      }
+
+      // Fetch total products (You'll need a new API for this, for now, use a placeholder or count all from product API)
+      try {
+          const productsResponse = await makeApiCall(`${API_PRODUCT_URL}?pageNumber=0&pageSize=1`); // To get totalElements
+          const productsData = await productsResponse.json();
+          if (productsData.status === 200 && productsData.data && productsData.data.totalElements != null) {
+              if (totalProductsEl) totalProductsEl.textContent = productsData.data.totalElements;
+              updateProgressCircle(productsProgressEl, productsPercentEl, 100);
+          } else { throw new Error(productsData.message || "Không thể tải tổng sản phẩm."); }
+      } catch (error) {
+          console.error("Lỗi tải tổng sản phẩm:", error);
+          showToast(`Lỗi tải tổng sản phẩm: ${error.message}`, false);
+      }
+
+      // Fetch Recent Orders (Last 5 or 10)
+      try {
+          const recentOrdersResponse = await makeApiCall(`${API_ORDER_ADMIN_URL}/all?page=0&size=5&sort=createAt,desc`);
+          const recentOrdersData = await recentOrdersResponse.json();
+          if (recentOrdersData.status === 200 && recentOrdersData.data && recentOrdersData.data.content) {
+              renderRecentOrdersTable(recentOrdersData.data.content);
+          } else { throw new Error(recentOrdersData.message || "Không thể tải đơn hàng gần đây."); }
+      } catch (error) {
+          console.error("Lỗi tải đơn hàng gần đây:", error);
+          showToast(`Lỗi tải đơn hàng gần đây: ${error.message}`, false);
+          if (recentOrdersTableBodyEl) recentOrdersTableBodyEl.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-red-500">Không thể tải đơn hàng gần đây.</td></tr>`;
+      }
+
+      // Fetch Monthly Revenue Chart Data
+      try {
+          const currentYear = new Date().getFullYear();
+          const monthlyRevenueResponse = await makeApiCall(`/api/statistics/revenue/monthly?year=${currentYear}`);
+          const monthlyRevenueData = await monthlyRevenueResponse.json();
+          if (monthlyRevenueData.status === 200 && monthlyRevenueData.data) {
+              renderMonthlyRevenueChart(monthlyRevenueData.data);
+          } else { throw new Error(monthlyRevenueData.message || "Không thể tải dữ liệu doanh thu tháng."); }
+      } catch (error) {
+          console.error("Lỗi tải dữ liệu doanh thu tháng:", error);
+          showToast(`Lỗi tải dữ liệu doanh thu tháng: ${error.message}`, false);
+      }
+  }
+
+  // Helper for progress circle
+  function updateProgressCircle(element, percentElement, percentage) {
+      const radius = 36;
+      const circumference = 2 * Math.PI * radius;
+      const offset = circumference - (percentage / 100) * circumference;
+      if (element) {
+          element.style.strokeDashoffset = offset;
+      }
+      if (percentElement) {
+          percentElement.textContent = `${percentage}%`;
+      }
+  }
+
+
+  // --- Render Functions ---
+  function renderRecentOrdersTable(orders) {
+      if (!recentOrdersTableBodyEl) return;
+      recentOrdersTableBodyEl.innerHTML = '';
+      if (!orders || orders.length === 0) {
+          recentOrdersTableBodyEl.innerHTML = `<tr><td colspan="6" class="text-center py-4">Không có đơn hàng gần đây.</td></tr>`;
+          return;
+      }
+      orders.forEach(order => {
+          const row = `
+              <tr>
+                  <td>#${order.id}</td>
+                  <td>${order.customerName || 'N/A'}</td>
+                  <td>${formatPrice(order.totalPrice)}</td>
+                  <td class="${order.status === 'DELIVERED' ? 'success' : order.status === 'CANCELLED' ? 'danger' : 'warning'}">${order.status || 'N/A'}</td>
+                  <td>${formatDate(order.createAt)}</td>
+                  <td class="primary"><a href="/admin/order-management?orderId=${order.id}">Chi tiết</a></td>
+              </tr>
+          `;
+          recentOrdersTableBodyEl.insertAdjacentHTML('beforeend', row);
+      });
+  }
+
+  let monthlyRevenueChartInstance; // Store chart instance to destroy/update
+
+  function renderMonthlyRevenueChart(data) {
+      if (!monthlyRevenueChartCanvas) { console.error("Monthly Revenue Chart Canvas not found."); return; }
+      if (monthlyRevenueChartInstance) { monthlyRevenueChartInstance.destroy(); } // Destroy existing chart
+
+      const labels = Object.keys(data);
+      const values = Object.values(data);
+
+      const ctx = monthlyRevenueChartCanvas.getContext('2d');
+      monthlyRevenueChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+              labels: labels,
+              datasets: [{
+                  label: 'Doanh thu (VND)',
+                  data: values,
+                  backgroundColor: 'rgba(115, 128, 236, 0.6)', /* var(--color-primary) with alpha */
+                  borderColor: 'rgba(115, 128, 236, 1)',
+                  borderWidth: 1,
+                  borderRadius: 5
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                  y: {
+                      beginAtZero: true,
+                      ticks: {
+                          callback: function(value) {
+                              return value.toLocaleString('vi-VN') + ' ₫';
+                          }
+                      }
+                  },
+                  x: {
+                      grid: { display: false }
+                  }
+              },
+              plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                      callbacks: {
+                          label: function(context) {
+                              let label = context.dataset.label || '';
+                              if (label) label += ': ';
+                              if (context.parsed.y !== null) label += context.parsed.y.toLocaleString('vi-VN') + ' ₫';
+                              return label;
+                          }
+                      }
+                  }
+              }
+          }
+      });
+  }
+
+
+  // --- Update Admin Auth Status on Header ---
+  function updateAdminAuthStatusOnHeader() {
+      const user = getLoggedInUser();
+      if (adminNameDisplayEl) {
+          if (user && (user.userName || user.firstName)) {
+              adminNameDisplayEl.textContent = user.userName || `${user.firstName || ''} ${user.lastName || ''}`.trim();
+          } else {
+              adminNameDisplayEl.textContent = "Admin";
+          }
+      }
+  }
+
+  // --- Khởi tạo ---
+  document.addEventListener('DOMContentLoaded', () => {
+      // Gán các phần tử DOM
+      adminNameDisplayEl = document.getElementById('adminNameDisplay');
+      logoutButtonEl = document.getElementById('logoutButton');
+      totalRevenueEl = document.getElementById('totalRevenue');
+      totalOrdersEl = document.getElementById('totalOrders');
+      totalProductsEl = document.getElementById('totalProducts');
+      revenueProgressEl = document.getElementById('revenueProgress');
+      ordersProgressEl = document.getElementById('ordersProgress');
+      productsProgressEl = document.getElementById('productsProgress');
+      revenuePercentEl = document.getElementById('revenuePercent');
+      ordersPercentEl = document.getElementById('ordersPercent');
+      productsPercentEl = document.getElementById('productsPercent');
+      recentOrdersTableBodyEl = document.getElementById('recentOrdersTableBody');
+      monthlyRevenueChartCanvas = document.getElementById('monthlyRevenueChart');
+      toastEl = document.getElementById('toast');
+      toastMessageEl = document.getElementById('toastMessage');
+
+      // Kiểm tra token và chuyển hướng nếu không có
+      const token = getToken();
+      if (!token) {
+          console.log("Admin Dashboard Page: No token found. Redirecting to login.");
+          window.location.href = '/login';
+          return;
+      }
+      updateAdminAuthStatusOnHeader(); // Cập nhật tên Admin trên header
+
+      // Gắn sự kiện đăng xuất
+      if (logoutButtonEl) {
+          logoutButtonEl.addEventListener('click', (e) => {
+              e.preventDefault();
+              removeToken();
+              showToast('Bạn đã đăng xuất.', true);
+              updateAdminAuthStatusOnHeader();
+              setTimeout(() => { window.location.href = '/login'; }, 1500);
+          });
+      }
+
+      // Tải dữ liệu dashboard
+      fetchDashboardData();
+
+      // Sidebar toggle logic (from Quanlysanpham.html)
+      const menuBtnSidebar = document.getElementById('menu-btn-sidebar');
+      const closeBtnSidebar = document.getElementById('close-btn'); /* ID trong dashboard.html là close-btn */
+      const sidebar = document.querySelector('aside');
+      if (menuBtnSidebar && sidebar) menuBtnSidebar.addEventListener('click', () => { sidebar.style.display = 'block'; });
+      if (closeBtnSidebar && sidebar) closeBtnSidebar.addEventListener('click', () => { sidebar.style.display = 'none'; });
+
+      // Dark mode toggle logic (from Quanlysanpham.html)
+      const darkModeToggle = document.querySelector('.dark-mode');
+      if (darkModeToggle) {
+           const body = document.body;
+           const lightModeSpan = document.querySelector('.dark-mode span:nth-child(1)');
+           const darkModeSpan = document.querySelector('.dark-mode span:nth-child(2)');
+
+           darkModeToggle.addEventListener('click', () => {
+               body.classList.toggle('dark-mode-variables');
+               lightModeSpan.classList.toggle('active');
+               darkModeSpan.classList.toggle('active');
+               // Save preference to localStorage if needed
+           });
+      }
+  });
+</script>
 </body>
 </html>
