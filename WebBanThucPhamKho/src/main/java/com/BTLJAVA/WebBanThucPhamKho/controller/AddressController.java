@@ -22,13 +22,6 @@ public class AddressController {
 
     private final AddressService addressService;
 
-    /**
-     * Lấy thông tin chi tiết của một địa chỉ bằng ID.
-     * Cần được bảo vệ nếu thông tin địa chỉ là nhạy cảm.
-     *
-     * @param addressId ID của địa chỉ cần lấy.
-     * @return ResponseData chứa AddressResponse.
-     */
     @GetMapping("/{addressId}")
     // @PreAuthorize("hasAuthority('ADMIN')
     public ResponseData<AddressResponse> getAddressById(@PathVariable Integer addressId) {

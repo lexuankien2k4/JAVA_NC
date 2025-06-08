@@ -19,7 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/statistics")
-@RequiredArgsConstructor // Tự động tạo constructor với các final fields (ví dụ: StatisticalService)
+@RequiredArgsConstructor
 @Slf4j // Để sử dụng logger
 public class StatisticalController {
 

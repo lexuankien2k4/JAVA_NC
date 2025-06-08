@@ -5,7 +5,7 @@ import com.BTLJAVA.WebBanThucPhamKho.dto.request.CartItemUpdateQuantityRequest;
 import com.BTLJAVA.WebBanThucPhamKho.dto.response.CartResponse;
 import com.BTLJAVA.WebBanThucPhamKho.dto.response.ResponseData;
 import com.BTLJAVA.WebBanThucPhamKho.entity.CustomUserDetails;
-import com.BTLJAVA.WebBanThucPhamKho.service.CartItemService; // Đảm bảo đây là CartService đã được cập nhật
+import com.BTLJAVA.WebBanThucPhamKho.service.CartItemService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +17,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections; // For empty list if needed
-import java.util.List; // For List type
+import java.util.Collections;
+
 
 @RestController
 @RequestMapping("/api/v1/cart")

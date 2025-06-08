@@ -24,10 +24,6 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
-    /**
-     * Lấy danh sách người dùng với phân trang.
-     * Cần quyền ADMIN.
-     */
 //    @PreAuthorize("hasRole('ADMIN')") // Example: Restrict to ADMIN
     @GetMapping("/list")
     public ResponseData<List<UserResponse>> getUsers(
@@ -41,12 +37,7 @@ public class UserController {
                 .data(users)
                 .build();
     }
-    /**
-     * Tạo người dùng mới.
-     * Thường thì API này có thể công khai (nếu là đăng ký) hoặc chỉ dành cho ADMIN.
-     * Nếu là API đăng ký công khai, nó nên nằm trong AuthController.
-     * Nếu là API tạo user bởi Admin, @PreAuthorize("hasRole('ADMIN')") là phù hợp.
-     */
+
 //    @PreAuthorize("hasRole('ADMIN')") // Example: Admin creates user
     @PostMapping
     public ResponseData<UserResponse> createUser(@Valid @RequestBody UserCreateRequest userCreate) {
@@ -58,11 +49,6 @@ public class UserController {
                 .data(user)
                 .build();
     }
-
-    /**
-     * Người dùng tự cập nhật thông tin cá nhân của họ.
-     * Yêu cầu người dùng đã được xác thực.
-     */
 //    @PreAuthorize("isAuthenticated()") // Any authenticated user can update their own info
     @PatchMapping // No ID needed, updates the currently authenticated user
     public ResponseData<UserResponse> updateUser(Authentication authentication, @Valid @RequestBody UserUpdateRequest userUpdate) {
@@ -84,10 +70,6 @@ public class UserController {
                 .build();
     }
 
-    /**
-     * Admin cập nhật thông tin của một người dùng cụ thể bằng ID.
-     * Cần quyền ADMIN.
-     */
 //    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}")
     public ResponseData<UserResponse> updateUserByAdmin(
@@ -101,10 +83,6 @@ public class UserController {
                 .build();
     }
 
-    /**
-     * Xóa người dùng bằng ID.
-     * Cần quyền ADMIN.
-     */
 //    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseData<String> deleteUser(@PathVariable Integer id) {
@@ -116,10 +94,6 @@ public class UserController {
                 .build();
     }
 
-    /**
-     * Lấy chi tiết một người dùng bằng ID.
-     * Cần quyền ADMIN hoặc người dùng tự lấy thông tin của mình.
-     */
     // Example: Allow ADMIN or the user themselves to get their details
 //    @PreAuthorize("hasRole('ADMIN') or @userService.isSelf(authentication, #id)")
     @GetMapping("/{id}")
@@ -132,10 +106,6 @@ public class UserController {
                 .build();
     }
 
-    /**
-     * Admin khóa hoặc mở khóa tài khoản người dùng.
-     * Cần quyền ADMIN.
-     */
 //    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/toggle-lock")
     public ResponseData<UserResponse> toggleUserLockStatus(@PathVariable Integer id) {

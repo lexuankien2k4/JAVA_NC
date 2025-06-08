@@ -55,7 +55,6 @@ public class CategoryServiceImpl implements CategoryService {
 
         Category category = new Category();
         category.setName(categoryRequest.getName());
-        // Không còn set parentCategory hoặc description từ request
 
         Category savedCategory = categoryRepository.save(category);
         log.info("Category created successfully with ID: {}", savedCategory.getId());
@@ -72,9 +71,7 @@ public class CategoryServiceImpl implements CategoryService {
         if (!category.getName().equals(categoryRequest.getName()) && categoryRepository.existsByName(categoryRequest.getName())) {
             throw new IllegalArgumentException("Tên danh mục mới đã tồn tại: " + categoryRequest.getName());
         }
-
         category.setName(categoryRequest.getName());
-        // Không còn set parentCategory hoặc description từ request
 
         Category updatedCategory = categoryRepository.save(category);
         log.info("Category updated successfully with ID: {}", updatedCategory.getId());
@@ -88,8 +85,6 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy danh mục với ID: " + id));
 
-        // Kiểm tra xem danh mục có sản phẩm nào không trước khi xóa
-        // Logic kiểm tra subCategories đã được loại bỏ
         if (category.getProducts() != null && !category.getProducts().isEmpty()) {
             throw new IllegalStateException("Không thể xóa danh mục vì nó còn chứa sản phẩm.");
         }

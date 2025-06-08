@@ -12,8 +12,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-// ResponseEntity không còn cần thiết cho các response thành công nếu tất cả đều dùng ResponseData
-// import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,13 +25,6 @@ public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
 
-    /**
-     * Xác thực người dùng. Endpoint này có thể trùng lặp với /login.
-     * Cân nhắc sử dụng một endpoint đăng nhập chính.
-     *
-     * @param authenticationRequest DTO chứa thông tin xác thực.
-     * @return ResponseData chứa AuthenticationResponse.
-     */
     @PostMapping // Ánh xạ tới POST /api/v1/auth
     public ResponseData<AuthenticationResponse> authenticateUser(@Valid @RequestBody AuthenticationRequest authenticationRequest) {
         log.info("API /api/v1/auth (authenticateUser) được gọi cho username: {}", authenticationRequest.getUsername());
@@ -41,17 +32,11 @@ public class AuthenticationController {
 
         return ResponseData.<AuthenticationResponse>builder()
                 .status(HttpStatus.OK.value())
-                .message("Xác thực thành công.") // "Authentication successful."
+                .message("Xác thực thành công.")
                 .data(authentication)
                 .build();
     }
 
-    /**
-     * Xử lý đăng nhập của người dùng.
-     *
-     * @param authenticationRequest DTO chứa thông tin đăng nhập.
-     * @return ResponseData chứa AuthenticationResponse.
-     */
     @PostMapping("/login")
     public ResponseData<AuthenticationResponse> loginUser(@Valid @RequestBody AuthenticationRequest authenticationRequest) {
         log.info("API /api/v1/auth/login được gọi cho username: {}", authenticationRequest.getUsername());
@@ -60,17 +45,11 @@ public class AuthenticationController {
         // Bao bọc AuthenticationResponse trong ResponseData
         return ResponseData.<AuthenticationResponse>builder()
                 .status(HttpStatus.OK.value())
-                .message("Đăng nhập thành công.") // "Login successful."
+                .message("Đăng nhập thành công.")
                 .data(authenticationResponse)
                 .build();
     }
 
-    /**
-     * Đăng ký người dùng mới.
-     *
-     * @param userCreateRequest DTO chứa thông tin người dùng mới.
-     * @return ResponseData chứa UserResponse của người dùng mới.
-     */
     @PostMapping("/register")
     public ResponseData<UserResponse> registerUser(@Valid @RequestBody UserCreateRequest userCreateRequest) {
         log.info("API /api/v1/auth/register được gọi với username: {}", userCreateRequest.getUsername());
@@ -78,18 +57,11 @@ public class AuthenticationController {
 
         // Bao bọc UserResponse trong ResponseData
         return ResponseData.<UserResponse>builder()
-                .status(HttpStatus.CREATED.value()) // HTTP 201 Created
-                .message("Đăng ký thành công.") // "Registration successful."
+                .status(HttpStatus.CREATED.value())
+                .message("Đăng ký thành công.")
                 .data(userResponse)
                 .build();
     }
-
-    /**
-     * Làm mới access token.
-     *
-     * @param refreshTokenRequest DTO chứa refresh token.
-     * @return ResponseData chứa AccessTokenResponse.
-     */
     @PostMapping("/refresh-token")
     public ResponseData<AccessTokenResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
         log.info("API /api/v1/auth/refresh-token được gọi.");
@@ -97,7 +69,7 @@ public class AuthenticationController {
 
         return ResponseData.<AccessTokenResponse>builder()
                 .status(HttpStatus.OK.value())
-                .message("Làm mới token thành công.") // "Token refreshed successfully."
+                .message("Làm mới token thành công.")
                 .data(accessToken)
                 .build();
     }

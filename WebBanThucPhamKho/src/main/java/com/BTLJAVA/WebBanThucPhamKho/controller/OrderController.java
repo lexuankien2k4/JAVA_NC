@@ -67,14 +67,14 @@ public class OrderController {
                     .message("Đặt hàng thành công!")
                     .data(orderResponse)
                     .build();
-        } catch (IllegalStateException | IllegalArgumentException e) { // Lỗi nghiệp vụ từ service
+        } catch (IllegalStateException | IllegalArgumentException e) {
             log.warn("CONTROLLER - placeOrder - Business logic error: {}", e.getMessage());
             return ResponseData.<OrderResponse>builder()
                     .status(HttpStatus.BAD_REQUEST.value())
                     .message("Lỗi khi đặt hàng: " + e.getMessage())
                     .error(e.getClass().getSimpleName())
                     .build();
-        } catch (EntityNotFoundException enfe) { // Không tìm thấy entity (ví dụ: user, product)
+        } catch (EntityNotFoundException enfe) {
             log.warn("CONTROLLER - placeOrder - Entity not found: {}", enfe.getMessage());
             return ResponseData.<OrderResponse>builder()
                     .status(HttpStatus.NOT_FOUND.value())
@@ -93,7 +93,7 @@ public class OrderController {
 
 
     @GetMapping("/my-history")
-    public ResponseData<List<OrderResponse>> getMyOrderHistory() { // Bỏ Authentication authentication nếu không dùng đến trực tiếp
+    public ResponseData<List<OrderResponse>> getMyOrderHistory() {
         Integer userId = getCurrentUserIdOptional();
         if (userId == null) {
             // Điều này không nên xảy ra do @PreAuthorize, nhưng là một lớp bảo vệ
