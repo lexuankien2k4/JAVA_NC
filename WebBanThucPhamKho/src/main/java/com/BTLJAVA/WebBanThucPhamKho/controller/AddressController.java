@@ -25,11 +25,9 @@ public class AddressController {
     @GetMapping("/{addressId}")
     // @PreAuthorize("hasAuthority('ADMIN')
     public ResponseData<AddressResponse> getAddressById(@PathVariable Integer addressId) {
-        log.info("CONTROLLER - API GET /addresses/{} - getAddressById called", addressId);
         try {
             AddressResponse addressResponse = addressService.getAddressResponseById(addressId);
             if (addressResponse == null) {
-                log.warn("CONTROLLER - getAddressById - Service returned null for ID: {}. This should ideally be an exception from service.", addressId);
                 return ResponseData.<AddressResponse>builder()
                         .status(HttpStatus.NOT_FOUND.value())
                         .message("Không tìm thấy địa chỉ với ID: " + addressId)

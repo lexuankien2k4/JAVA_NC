@@ -27,7 +27,6 @@ public class AuthenticationController {
 
     @PostMapping // Ánh xạ tới POST /api/v1/auth
     public ResponseData<AuthenticationResponse> authenticateUser(@Valid @RequestBody AuthenticationRequest authenticationRequest) {
-        log.info("API /api/v1/auth (authenticateUser) được gọi cho username: {}", authenticationRequest.getUsername());
         AuthenticationResponse authentication = authenticationService.authenticate(authenticationRequest);
 
         return ResponseData.<AuthenticationResponse>builder()
@@ -39,10 +38,8 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseData<AuthenticationResponse> loginUser(@Valid @RequestBody AuthenticationRequest authenticationRequest) {
-        log.info("API /api/v1/auth/login được gọi cho username: {}", authenticationRequest.getUsername());
         AuthenticationResponse authenticationResponse = authenticationService.authenticate(authenticationRequest);
 
-        // Bao bọc AuthenticationResponse trong ResponseData
         return ResponseData.<AuthenticationResponse>builder()
                 .status(HttpStatus.OK.value())
                 .message("Đăng nhập thành công.")
@@ -52,7 +49,6 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseData<UserResponse> registerUser(@Valid @RequestBody UserCreateRequest userCreateRequest) {
-        log.info("API /api/v1/auth/register được gọi với username: {}", userCreateRequest.getUsername());
         UserResponse userResponse = authenticationService.register(userCreateRequest);
 
         // Bao bọc UserResponse trong ResponseData
@@ -64,7 +60,6 @@ public class AuthenticationController {
     }
     @PostMapping("/refresh-token")
     public ResponseData<AccessTokenResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
-        log.info("API /api/v1/auth/refresh-token được gọi.");
         AccessTokenResponse accessToken = authenticationService.verifyRefreshToken(refreshTokenRequest.getRefreshToken());
 
         return ResponseData.<AccessTokenResponse>builder()
