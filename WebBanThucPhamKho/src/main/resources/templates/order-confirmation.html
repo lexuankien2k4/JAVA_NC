@@ -135,272 +135,425 @@
 <div id="toast" class="toast"><span id="toastMessage"></span></div>
 
 <script>
-  // URLs API
-  const API_ORDER_URL_CONF = '/api/v1/orders';
+    // URLs API
+    const API_CART_URL = '/api/v1/cart';
+    const API_ORDER_URL = '/api/v1/orders';
 
-  // DOM Elements
-  let userAuthStatusHeaderEl_oc, cartItemCountHeaderEl_oc, toast_oc, toastMessage_oc,
-      confirmationLoadingMessageEl_oc, confirmationDetailsEl_oc, orderNotFoundErrorEl_oc,
-      confOrderIdEl, confOrderDateEl, confOrderStatusEl, confOrderTotalEl,
-      confCustomerNameEl, confCustomerPhoneEl, confCustomerEmailEl, confCustomerEmailContainerEl,
-      confShippingAddressEl, confOrderTitleEl, confOrderTitleContainerEl, confOrderItemsContainerEl,
-      viewOrderHistoryBtn_oc;
+    // DOM Elements
+    let userAuthStatusHeaderEl, cartItemCountHeaderEl, toast, toastMessage,
+        checkoutLoadingMessageEl, checkoutFormEl,
+        checkoutOrderSummaryItemsEl, summaryTotalQuantityCheckoutEl,
+        summarySubtotalCheckoutEl, summaryGrandTotalCheckoutEl,
+        placeOrderButtonEl, checkoutFormMessageEl, guestInfoMessageEl;
 
+    // Input elements
+    let customerNameInput, customerPhoneInput, customerEmailInput,
+        addressNumberInput, addressStreetInput, addressWardInput, addressDistrictInput, addressCityInput, orderTitleInput;
 
-  // --- Token Management ---
-  function getToken_oc() { return localStorage.getItem('accessToken'); }
-  function removeToken_oc() { localStorage.removeItem('accessToken'); localStorage.removeItem('refreshToken'); localStorage.removeItem('loggedInUser'); }
-  function getLoggedInUser_oc() { const u = localStorage.getItem('loggedInUser'); try { return u ? JSON.parse(u) : null; } catch(e) { return null; } }
-
-  // --- Utility Functions ---
-  function showToast_oc(message, isSuccess = true) {
-      if (!toast_oc || !toastMessage_oc) return;
-      toastMessage_oc.textContent = message;
-      toast_oc.className = `toast ${isSuccess ? 'success' : 'error'}`;
-      toast_oc.style.display = 'block';
-      setTimeout(() => { if(toast_oc) toast_oc.style.display = 'none'; }, 3000);
-  }
-  function formatPrice_oc(price) {
-      const numericPrice = Number(price);
-      if (price == null || isNaN(numericPrice)) { return '0 ₫'; }
-      return numericPrice.toLocaleString('vi-VN') + ' ₫';
-  }
-  function formatDate_oc(dateString) { // Dùng cho java.util.Date từ AbstractEntity
-      if (!dateString) return 'N/A';
-      try {
-          const date = new Date(dateString);
-          if (isNaN(date.getTime())) return 'N/A';
-          const day = date.getDate().toString().padStart(2, '0');
-          const month = (date.getMonth() + 1).toString().padStart(2, '0');
-          const year = date.getFullYear();
-          const hours = date.getHours().toString().padStart(2, '0');
-          const minutes = date.getMinutes().toString().padStart(2, '0');
-          return `${day}/${month}/${year} ${hours}:${minutes}`;
-      } catch (e) {
-          console.warn("Lỗi định dạng ngày:", dateString, e);
-          return 'N/A';
-      }
-  }
-
-  // --- API Call Wrapper ---
-  async function makeApiCall_oc(url, method = 'GET', body = null, requiresAuth = true) { // Mặc định API order cần auth
-      const headers = { 'Content-Type': 'application/json' };
-      const token = getToken_oc();
-
-      if (requiresAuth) {
-          if (token) {
-              headers['Authorization'] = `Bearer ${token}`;
-          } else {
-              console.warn(`Gọi API ${url} yêu cầu xác thực nhưng không tìm thấy token.`);
-              showToast_oc('Vui lòng đăng nhập để xem thông tin đơn hàng.', false);
-              localStorage.setItem('redirectAfterLogin', window.location.href); // Lưu lại trang hiện tại
-              window.location.href = '/login';
-              return Promise.reject({ error: 'NO_TOKEN', message: "Yêu cầu đăng nhập" });
-          }
-      }
-
-      const config = { method, headers };
-      if (body && (method === 'POST' || method === 'PATCH' || method === 'PUT')) {
-          config.body = JSON.stringify(body);
-      }
-      console.log(`OrderConfPage - Calling API: ${method} ${url}`);
-      const response = await fetch(url, config);
-      console.log(`OrderConfPage - Raw response from ${url} - Status: ${response.status}`);
-
-      if ((response.status === 401 || response.status === 403) && token && requiresAuth) {
-          const message = response.status === 401 ? 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.' : 'Bạn không có quyền truy cập.';
-          showToast_oc(message, false);
-          if (response.status === 401) {
-              removeToken_oc();
-              updateUserAuthStatusOnHeader_oc();
-              localStorage.setItem('redirectAfterLogin', window.location.href);
-              window.location.href = '/login';
-          }
-          throw new Error(response.status === 401 ? 'Unauthorized' : 'Forbidden');
-      }
-      return response;
-  }
-
-  // --- Load Order Details ---
-  async function fetchOrderDetails(orderId) {
-      if (!orderId) {
-          console.error("Order ID không được cung cấp.");
-          if (confirmationLoadingMessageEl_oc) confirmationLoadingMessageEl_oc.style.display = 'none';
-          if (orderNotFoundErrorEl_oc) orderNotFoundErrorEl_oc.style.display = 'block';
-          return;
-      }
-
-      if (confirmationLoadingMessageEl_oc) confirmationLoadingMessageEl_oc.style.display = 'block';
-      if (confirmationDetailsEl_oc) confirmationDetailsEl_oc.classList.add('hidden');
-      if (orderNotFoundErrorEl_oc) orderNotFoundErrorEl_oc.style.display = 'none';
-
-      try {
-          // API GET /orders/{orderId} của bạn yêu cầu xác thực
-          const response = await makeApiCall_oc(`${API_ORDER_URL_CONF}/${orderId}`, 'GET', null, true);
-
-          if (!response.ok) {
-              let errorMsg = `Lỗi tải đơn hàng ${orderId} (${response.status})`;
-              try {
-                  if (response.headers.get("content-type")?.includes("application/json")) {
-                      const errorData = await response.json(); errorMsg = errorData.message || errorMsg;
-                  } else { errorMsg = await response.text(); }
-              } catch (e) {}
-              throw new Error(errorMsg);
-          }
-          const responseData = await response.json(); // ResponseData<OrderResponse>
-
-          if (responseData.status === 200 && responseData.data) {
-              renderOrderConfirmation(responseData.data); // responseData.data là OrderResponse
-          } else {
-              throw new Error(responseData.message || "Không thể tải dữ liệu đơn hàng.");
-          }
-      } catch (error) {
-          if (error.message !== 'Unauthorized' && error.message !== 'Forbidden' && error.message !== 'NO_TOKEN') {
-              console.error(`Lỗi khi tải đơn hàng ID ${orderId}:`, error);
-              showToast_oc(`Lỗi tải đơn hàng: ${error.message}`, false);
-              if (orderNotFoundErrorEl_oc) orderNotFoundErrorEl_oc.style.display = 'block';
-          }
-      } finally {
-          if (confirmationLoadingMessageEl_oc) confirmationLoadingMessageEl_oc.style.display = 'none';
-      }
-  }
-
-  function renderOrderConfirmation(orderData) {
-      if (!orderData) {
-          if (orderNotFoundErrorEl_oc) orderNotFoundErrorEl_oc.style.display = 'block';
-          return;
-      }
-      if (confirmationDetailsEl_oc) confirmationDetailsEl_oc.classList.remove('hidden');
-
-      if(confOrderIdEl) confOrderIdEl.textContent = `#${orderData.id}`;
-      if(confOrderDateEl) confOrderDateEl.textContent = formatDate_oc(orderData.createAt);
-      if(confOrderStatusEl) confOrderStatusEl.textContent = orderData.status || 'N/A';
-      if(confOrderTotalEl) confOrderTotalEl.textContent = formatPrice_oc(orderData.totalPrice);
-
-      if(confCustomerNameEl) confCustomerNameEl.textContent = orderData.customerName || 'N/A';
-      if(confCustomerPhoneEl) confCustomerPhoneEl.textContent = orderData.customerPhone || 'N/A';
-
-      if(orderData.customerEmail && confCustomerEmailEl && confCustomerEmailContainerEl) {
-          confCustomerEmailEl.textContent = orderData.customerEmail;
-          confCustomerEmailContainerEl.classList.remove('hidden');
-      } else if (confCustomerEmailContainerEl) {
-          confCustomerEmailContainerEl.classList.add('hidden');
-      }
-
-      if(orderData.shippingAddress && confShippingAddressEl) {
-          confShippingAddressEl.textContent = orderData.shippingAddress.fullAddress || 'N/A';
-      } else if (confShippingAddressEl) {
-          confShippingAddressEl.textContent = 'N/A';
-      }
-
-      if(orderData.title && confOrderTitleEl && confOrderTitleContainerEl) {
-          confOrderTitleEl.textContent = orderData.title;
-          confOrderTitleContainerEl.classList.remove('hidden');
-      } else if (confOrderTitleContainerEl) {
-          confOrderTitleContainerEl.classList.add('hidden');
-      }
+    // Error message elements (for client-side validation)
+    let customerNameErrorEl, customerPhoneErrorEl, customerEmailErrorEl,
+        addressNumberErrorEl, addressStreetErrorEl, addressWardErrorEl, addressDistrictErrorEl, addressCityErrorEl;
 
 
-      if (confOrderItemsContainerEl && orderData.orderDetails && orderData.orderDetails.length > 0) {
-          confOrderItemsContainerEl.innerHTML = '';
-          orderData.orderDetails.forEach(item => {
-              const itemHtml = `
-                  <tr class="border-b last:border-b-0">
-                      <td class="py-3 pr-3 flex items-center">
-                          <img src="${item.productImageUrl || 'https://placehold.co/40x40'}" alt="${item.productName}" class="w-12 h-12 object-cover rounded mr-3">
-                          <div>
-                              <p class="font-medium text-sm">${item.productName || 'N/A'}</p>
-                              <p class="text-xs text-gray-500">ID SP: ${item.productId}</p>
-                          </div>
-                      </td>
-                      <td class="py-3 text-sm text-center">${item.quantity || 0}</td>
-                      <td class="py-3 text-sm text-right">${formatPrice_oc(item.priceAtOrder)}</td>
-                      <td class="py-3 text-sm font-medium text-right">${formatPrice_oc(item.lineTotal)}</td>
-                  </tr>
-              `;
-              confOrderItemsContainerEl.insertAdjacentHTML('beforeend', itemHtml);
-          });
-      } else if (confOrderItemsContainerEl) {
-          confOrderItemsContainerEl.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-gray-500">Không có chi tiết sản phẩm.</td></tr>';
-      }
+    // --- Quản lý Token & Guest Cart ID ---
+    function getToken() { return localStorage.getItem('accessToken'); }
+    function getGuestCartId() { return localStorage.getItem('guestCartId'); }
+    function setGuestCartId(id) { localStorage.setItem('guestCartId', id); }
+    function removeToken() {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('loggedInUser');
+        console.log("Token và thông tin người dùng đã được xóa.");
+    }
+    function getLoggedInUser() {
+        const userData = localStorage.getItem('loggedInUser');
+        try { return userData ? JSON.parse(userData) : null; }
+        catch (e) { console.error("Lỗi phân tích loggedInUser từ localStorage:", e); return null; }
+    }
+    function removeGuestCartId() {
+        localStorage.removeItem('guestCartId');
+        console.log("GuestCartId đã được xóa.");
+    }
 
-      if (!getToken_oc() && viewOrderHistoryBtn_oc) {
-          viewOrderHistoryBtn_oc.style.display = 'none';
-      } else if (viewOrderHistoryBtn_oc) {
-          viewOrderHistoryBtn_oc.style.display = 'inline-block';
-      }
-  }
+    // --- Hàm Tiện ích ---
+    function showToast(message, isSuccess = true) {
+        if (!toast || !toastMessage) { console.warn("Không tìm thấy phần tử toast:", message); return; }
+        toastMessage.textContent = message;
+        toast.className = `toast ${isSuccess ? 'success' : 'error'}`;
+        toast.style.display = 'block';
+        setTimeout(() => { if(toast) toast.style.display = 'none'; }, 3000);
+    }
+    function formatPrice(price) {
+        const numericPrice = Number(price);
+        if (price == null || isNaN(numericPrice)) { return '0 ₫'; }
+        return numericPrice.toLocaleString('vi-VN') + ' ₫';
+    }
 
-  // --- Cập nhật trạng thái đăng nhập trên UI Header ---
-  function updateUserAuthStatusOnHeader_oc() {
-      const user = getLoggedInUser_oc();
-      if (userAuthStatusHeaderEl_oc) {
-          if (user && (user.userName || user.firstName)) {
-              const displayName = user.userName || `${user.firstName || ''} ${user.lastName || ''}`.trim();
-              userAuthStatusHeaderEl_oc.innerHTML = `
-                  <span class="text-gray-700 mr-2">Chào, ${displayName}!</span>
-                  <a href="#" id="logoutLinkOrderConfPage" class="text-red-600 hover:underline font-semibold">Đăng xuất</a>
-              `;
-              const logoutLink = document.getElementById('logoutLinkOrderConfPage');
-              if (logoutLink && !logoutLink.hasLogoutListener) {
-                  logoutLink.addEventListener('click', (e) => {
-                      e.preventDefault(); removeToken_oc();
-                      // Không cần removeGuestCartId ở đây vì đơn hàng đã được đặt
-                      showToast_oc('Bạn đã đăng xuất.', true);
-                      updateUserAuthStatusOnHeader_oc();
-                      window.location.href = '/'; // Chuyển về trang chủ
-                  });
-                  logoutLink.hasLogoutListener = true;
-              }
-          } else {
-              userAuthStatusHeaderEl_oc.innerHTML = '<a href="/login" class="text-gray-700 hover:text-red-600 font-semibold">Đăng nhập</a>';
-          }
-      }
-  }
+    function displayError(element, message) {
+        if (element) {
+            element.textContent = message;
+            element.style.display = message ? 'block' : 'none';
+        }
+    }
 
-  // --- Khởi tạo Trang Xác nhận Đơn hàng ---
-  document.addEventListener('DOMContentLoaded', () => {
-      userAuthStatusHeaderEl_oc = document.getElementById('userAuthStatusHeader');
-      cartItemCountHeaderEl_oc = document.getElementById('cartItemCountHeader');
-      toast_oc = document.getElementById('toast');
-      toastMessage_oc = document.getElementById('toastMessage');
-      confirmationLoadingMessageEl_oc = document.getElementById('confirmationLoadingMessage');
-      confirmationDetailsEl_oc = document.getElementById('confirmationDetails');
-      orderNotFoundErrorEl_oc = document.getElementById('orderNotFoundError');
-      confOrderIdEl = document.getElementById('confOrderId');
-      confOrderDateEl = document.getElementById('confOrderDate');
-      confOrderStatusEl = document.getElementById('confOrderStatus');
-      confOrderTotalEl = document.getElementById('confOrderTotal');
-      confCustomerNameEl = document.getElementById('confCustomerName');
-      confCustomerPhoneEl = document.getElementById('confCustomerPhone');
-      confCustomerEmailEl = document.getElementById('confCustomerEmail');
-      confCustomerEmailContainerEl = document.getElementById('confCustomerEmailContainer');
-      confShippingAddressEl = document.getElementById('confShippingAddress');
-      confOrderTitleEl = document.getElementById('confOrderTitle');
-      confOrderTitleContainerEl = document.getElementById('confOrderTitleContainer');
-      confOrderItemsContainerEl = document.getElementById('confOrderItemsContainer');
-      viewOrderHistoryBtn_oc = document.getElementById('viewOrderHistoryBtn');
+    function clearErrors() {
+        displayError(customerNameErrorEl, '');
+        displayError(customerPhoneErrorEl, '');
+        displayError(customerEmailErrorEl, '');
+        displayError(addressNumberErrorEl, '');
+        displayError(addressStreetErrorEl, '');
+        displayError(addressWardErrorEl, '');
+        displayError(addressDistrictErrorEl, '');
+        displayError(addressCityErrorEl, '');
+        if (checkoutFormMessageEl) checkoutFormMessageEl.textContent = '';
+    }
+
+    // --- Hàm Gọi API Chung (Sửa đổi để xử lý guestCartId tốt hơn) ---
+    async function makeApiCall(url, method = 'GET', body = null, requiresAuth = false) {
+        const headers = { 'Content-Type': 'application/json' };
+        const token = getToken();
+        let finalUrl = url;
+
+        if (requiresAuth) { // Nếu API yêu cầu xác thực rõ ràng
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            } else {
+                console.warn(`Calling API ${url} requires authentication but no token found.`);
+                showToast('Vui lòng đăng nhập để thực hiện hành động này.', false);
+                localStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
+                window.location.href = '/login';
+                return Promise.reject({ error: 'NO_TOKEN', status: 401, ok: false, message: "Yêu cầu đăng nhập" });
+            }
+        } else if (url.startsWith(API_CART_URL)) { // Đối với API giỏ hàng (có thể là khách hoặc người dùng)
+            if (token) { // Nếu có token, ưu tiên dùng token
+                headers['Authorization'] = `Bearer ${token}`;
+            } else { // Nếu không có token, dùng guestCartId
+                let guestId = getGuestCartId();
+                if (!guestId && !url.includes('/add') && method === 'GET') {
+                    guestId = crypto.randomUUID();
+                    setGuestCartId(guestId);
+                    console.log("Generated new guestCartId:", guestId);
+                }
+                if (guestId) {
+                    finalUrl += (finalUrl.includes('?') ? '&' : '?') + `guestCartId=${guestId}`;
+                }
+            }
+        } else if (token) { // <<< SỬA LỖI: Đây là mấu chốt.
+            // Ngay cả khi 'requiresAuth' là false (như API đặt hàng),
+            // chúng ta VẪN GỬI token nếu có.
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const config = { method: method, headers: headers };
+        if (body && (method === 'POST' || method === 'PATCH' || method === 'PUT')) {
+            config.body = JSON.stringify(body);
+        }
+        console.log(`CheckoutPage - Calling API: ${method} ${finalUrl}`, config.body ? `with body: ${config.body.substring(0,150)}...` : '');
+        const response = await fetch(finalUrl, config);
+
+        console.log(`CheckoutPage - Raw response from ${finalUrl} - Status: ${response.status}, Content-Type: ${response.headers.get('Content-Type')}`);
+
+        if ((response.status === 401 || response.status === 403) && token) { // Chỉ xử lý 401/403 nếu đã GỬI token
+            const message = response.status === 401 ? 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.' : 'Bạn không có quyền thực hiện hành động này.';
+            showToast(message, false);
+            if (response.status === 401) {
+                removeToken(); removeGuestCartId(); updateUserAuthStatusOnHeader();
+                localStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
+                window.location.href = '/login';
+            }
+            throw new Error(response.status === 401 ? 'Unauthorized' : 'Forbidden');
+        }
+        if (!response.ok) {
+            let errorMsg = `Lỗi server (${response.status})`;
+            try {
+                const errorData = await response.json();
+                errorMsg = errorData.message || errorData.error || errorMsg;
+            } catch (e) {
+                errorMsg = await response.text();
+            }
+            throw new Error(errorMsg);
+        }
+        return response;
+    }
+
+    // --- Load Cart Summary for Checkout Page ---
+    async function loadCartSummaryForCheckout() {
+        if (checkoutLoadingMessageEl) checkoutLoadingMessageEl.style.display = 'block';
+        if (checkoutFormEl) checkoutFormEl.classList.add('hidden');
+        if (placeOrderButtonEl) placeOrderButtonEl.disabled = true;
+
+        try {
+            const response = await makeApiCall(API_CART_URL, 'GET', null, false);
+            if (response.error === 'NO_TOKEN') { renderCheckoutSummary(null); return; }
+
+            if (!response.ok) {
+                let errorMsg = `Lỗi tải tóm tắt giỏ hàng (${response.status})`;
+                try {
+                    if (response.headers.get("content-type")?.includes("application/json")) {
+                         const errorData = await response.json(); errorMsg = errorData.message || errorMsg;
+                    } else { errorMsg = await response.text(); }
+                } catch (e) {}
+                throw new Error(errorMsg);
+            }
+            const responseData = await response.json();
+            if (responseData.status === 200 && responseData.data) {
+                renderCheckoutSummary(responseData.data);
+            } else {
+                throw new Error(responseData.message || "Không thể tải dữ liệu tóm tắt giỏ hàng.");
+            }
+        } catch (error) {
+            if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+                console.error("Lỗi khi tải tóm tắt giỏ hàng:", error);
+                showToast(`Lỗi tải tóm tắt giỏ hàng: ${error.message}`, false);
+                renderCheckoutSummary(null);
+            }
+        } finally {
+            if (checkoutLoadingMessageEl) checkoutLoadingMessageEl.style.display = 'none';
+            if (checkoutFormEl) checkoutFormEl.classList.remove('hidden');
+        }
+    }
+
+    function renderCheckoutSummary(cartData) {
+        if (!checkoutOrderSummaryItemsEl || !summaryTotalQuantityCheckoutEl || !summarySubtotalCheckoutEl || !summaryGrandTotalCheckoutEl || !cartItemCountHeaderEl) {
+            console.error("Một hoặc nhiều phần tử DOM của tóm tắt đơn hàng không tìm thấy."); return;
+        }
+        console.log("CheckoutPage - Rendering checkout summary with cartData:", JSON.stringify(cartData, null, 2));
+
+        if (!cartData || !cartData.items || cartData.items.length === 0) {
+            checkoutOrderSummaryItemsEl.innerHTML = '<p class="text-gray-500 text-sm py-4 text-center">Giỏ hàng của bạn trống.</p>';
+            summaryTotalQuantityCheckoutEl.textContent = '0';
+            summarySubtotalCheckoutEl.textContent = '0 ₫';
+            summaryGrandTotalCheckoutEl.textContent = '0 ₫';
+            cartItemCountHeaderEl.textContent = '0';
+            if (placeOrderButtonEl) placeOrderButtonEl.disabled = true;
+            showToast("Giỏ hàng trống, không thể thanh toán. Vui lòng thêm sản phẩm.", false);
+            setTimeout(() => { window.location.href = '/cart'; }, 2000);
+            return;
+        }
+
+        checkoutOrderSummaryItemsEl.innerHTML = '';
+        cartData.items.forEach(item => {
+            const itemHtml = `
+                <div class="flex justify-between items-center text-sm py-1 border-b border-gray-200 last:border-b-0">
+                    <div class="flex items-center">
+                        <img src="${item.productImageUrl || 'https://placehold.co/40x40'}" alt="${item.productName}" class="w-10 h-10 object-cover rounded mr-2">
+                        <span class="truncate w-40" title="${item.productName}">${item.productName} (x${item.quantity})</span>
+                    </div>
+                    <span class="font-medium">${formatPrice(item.lineTotal)}</span>
+                </div>
+            `;
+            checkoutOrderSummaryItemsEl.insertAdjacentHTML('beforeend', itemHtml);
+        });
+
+        summaryTotalQuantityCheckoutEl.textContent = cartData.totalQuantity || 0;
+        summarySubtotalCheckoutEl.textContent = formatPrice(cartData.subtotalPrice);
+        summaryGrandTotalCheckoutEl.textContent = formatPrice(cartData.subtotalPrice);
+        cartItemCountHeaderEl.textContent = cartData.totalQuantity || 0;
+        if (placeOrderButtonEl) placeOrderButtonEl.disabled = false;
+    }
+
+    // --- Pre-fill Form for Logged-in User ---
+    function prefillShippingForm() {
+        const user = getLoggedInUser();
+        if (user && checkoutFormEl) {
+            if (customerNameInput && (user.firstName || user.lastName)) {
+                customerNameInput.value = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+            }
+            if (customerPhoneInput && user.phone) {
+                customerPhoneInput.value = String(user.phone);
+            }
+            if (customerEmailInput && user.email) {
+                customerEmailInput.value = user.email;
+            }
+            if(guestInfoMessageEl) guestInfoMessageEl.classList.add('hidden');
+        } else if (guestInfoMessageEl) {
+            guestInfoMessageEl.classList.remove('hidden');
+            const loginLink = document.getElementById('loginLinkFromCheckout');
+            const registerLink = document.getElementById('registerLinkFromCheckout');
+            const redirectParam = `?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+            if(loginLink) loginLink.href = `/login${redirectParam}`;
+            if(registerLink) registerLink.href = `/login${redirectParam}`;
+        }
+    }
+
+    // --- Handle Place Order ---
+    // (Đoạn này đã được di chuyển vào DOMContentLoaded bên dưới)
+
+    // --- Cập nhật trạng thái đăng nhập trên UI Header ---
+    function updateUserAuthStatusOnHeader() {
+        const user = getLoggedInUser();
+        if (userAuthStatusHeaderEl) {
+            if (user && (user.userName || user.firstName)) {
+                const displayName = user.userName || `${user.firstName || ''} ${user.lastName || ''}`.trim();
+                userAuthStatusHeaderEl.innerHTML = `
+                    <span class="text-gray-700 mr-2">Chào, ${displayName}!</span>
+                    <a href="#" id="logoutLinkCheckoutPage" class="text-red-600 hover:underline font-semibold">Đăng xuất</a>
+                `;
+                const logoutLink = document.getElementById('logoutLinkCheckoutPage');
+                if (logoutLink && !logoutLink.hasLogoutListener) {
+                    logoutLink.addEventListener('click', (e) => {
+                        e.preventDefault(); removeToken(); removeGuestCartId();
+                        showToast('Bạn đã đăng xuất.', true);
+                        updateUserAuthStatusOnHeader();
+                        window.location.href = '/';
+                    });
+                    logoutLink.hasLogoutListener = true;
+                }
+            } else {
+                userAuthStatusHeaderEl.innerHTML = '<a href="/login" class="text-gray-700 hover:text-red-600 font-semibold">Đăng nhập</a>';
+            }
+        }
+    }
+
+    // --- Khởi tạo Trang Checkout ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // Gán các phần tử DOM chính
+        checkoutLoadingMessageEl = document.getElementById('checkoutLoadingMessage');
+        checkoutFormEl = document.getElementById('checkoutForm');
+        checkoutOrderSummaryItemsEl = document.getElementById('checkoutOrderSummaryItems');
+        summaryTotalQuantityCheckoutEl = document.getElementById('summaryTotalQuantityCheckout');
+        summarySubtotalCheckoutEl = document.getElementById('summarySubtotalCheckout');
+        summaryGrandTotalCheckoutEl = document.getElementById('summaryGrandTotalCheckout');
+        placeOrderButtonEl = document.getElementById('placeOrderButton');
+        checkoutFormMessageEl = document.getElementById('checkoutFormMessage');
+        guestInfoMessageEl = document.getElementById('guestInfoMessage');
+        cartItemCountHeaderEl = document.getElementById('cartItemCountHeader');
+        userAuthStatusHeaderEl = document.getElementById('userAuthStatusHeader');
+        toast = document.getElementById('toast');
+        toastMessage = document.getElementById('toastMessage');
+
+        // Gán các phần tử input
+        customerNameInput = document.getElementById('customerName');
+        customerPhoneInput = document.getElementById('customerPhone');
+        customerEmailInput = document.getElementById('customerEmail');
+        addressNumberInput = document.getElementById('addressNumber');
+        addressStreetInput = document.getElementById('addressStreet');
+        addressWardInput = document.getElementById('addressWard');
+        addressDistrictInput = document.getElementById('addressDistrict');
+        addressCityInput = document.getElementById('addressCity');
+        orderTitleInput = document.getElementById('orderTitle');
+
+        // Gán các phần tử hiển thị lỗi
+        customerNameErrorEl = document.getElementById('customerNameError');
+        customerPhoneErrorEl = document.getElementById('customerPhoneError');
+        customerEmailErrorEl = document.getElementById('customerEmailError');
+        addressNumberErrorEl = document.getElementById('addressNumberError');
+        addressStreetErrorEl = document.getElementById('addressStreetError');
+        addressWardErrorEl = document.getElementById('addressWardError');
+        addressDistrictErrorEl = document.getElementById('addressDistrictError');
+        addressCityErrorEl = document.getElementById('addressCityError');
 
 
-      updateUserAuthStatusOnHeader_oc();
-      if(cartItemCountHeaderEl_oc) cartItemCountHeaderEl_oc.textContent = '0'; // Giỏ hàng đã được đặt
+        // <<< SỬA LỖI 1: DI CHUYỂN LOGIC addEventListener VÀO ĐÂY
+        // Gắn listener cho form CHỈ SAU KHI DOM đã tải
+        if (checkoutFormEl) {
+            checkoutFormEl.addEventListener('submit', async function(event) {
+                event.preventDefault(); // Ngăn chặn submit form HTML
+                clearErrors();
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const orderId = urlParams.get('orderId');
+                if (placeOrderButtonEl) { placeOrderButtonEl.disabled = true; placeOrderButtonEl.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang xử lý...'; }
 
-      if (orderId) {
-          fetchOrderDetails(orderId);
-      } else {
-          console.error("Không tìm thấy orderId trên URL.");
-          if (confirmationLoadingMessageEl_oc) confirmationLoadingMessageEl_oc.style.display = 'none';
-          if (orderNotFoundErrorEl_oc) orderNotFoundErrorEl_oc.style.display = 'block';
-      }
+                const token = getToken();
 
-      if(viewOrderHistoryBtn_oc) {
-          // Đường dẫn này cần được UiController xử lý để trả về trang lịch sử đơn hàng
-          viewOrderHistoryBtn_oc.href = "/orders/my-history";
-      }
-  });
+                // <<< SỬA LỖI 2: XÓA KHỐI if (!token) ...
+                // Logic cũ: if(!token) { redirect to login; } -> SAI
+                // Logic mới: Tiếp tục thực hiện, API sẽ xử lý khách hoặc người dùng
+
+                // Lấy giá trị từ các input và trim()
+                const customerName = customerNameInput.value.trim();
+                const customerPhone = customerPhoneInput.value.trim();
+                const customerEmail = customerEmailInput.value.trim();
+                const addressNumber = addressNumberInput.value.trim();
+                const addressStreet = addressStreetInput.value.trim();
+                const addressWard = addressWardInput.value.trim();
+                const addressDistrict = addressDistrictInput.value.trim();
+                const addressCity = addressCityInput.value.trim();
+                const orderTitle = orderTitleInput.value.trim();
+
+                let hasClientError = false;
+
+                // Client-side validation
+                if (!customerName) { displayError(customerNameErrorEl, 'Tên người nhận không được để trống.'); hasClientError = true; } else { displayError(customerNameErrorEl, ''); }
+                if (!customerPhone) { displayError(customerPhoneErrorEl, 'Số điện thoại không được để trống.'); hasClientError = true; } else { displayError(customerPhoneErrorEl, ''); }
+                if (customerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) { displayError(customerEmailErrorEl, 'Email không hợp lệ.'); hasClientError = true; } else { displayError(customerEmailErrorEl, ''); }
+                if (!addressNumber) { displayError(addressNumberErrorEl, 'Số nhà không được để trống.'); hasClientError = true; } else { displayError(addressNumberErrorEl, ''); }
+                if (!addressStreet) { displayError(addressStreetErrorEl, 'Tên đường không được để trống.'); hasClientError = true; } else { displayError(addressStreetErrorEl, ''); }
+                if (!addressWard) { displayError(addressWardErrorEl, 'Phường/Xã không được để trống.'); hasClientError = true; } else { displayError(addressWardErrorEl, ''); }
+                if (!addressDistrict) { displayError(addressDistrictErrorEl, 'Quận/Huyện không được để trống.'); hasClientError = true; } else { displayError(addressDistrictErrorEl, ''); }
+                if (!addressCity) { displayError(addressCityErrorEl, 'Tỉnh/Thành phố không được để trống.'); hasClientError = true; } else { displayError(addressCityErrorEl, ''); }
+
+                if (hasClientError) {
+                    showToast("Vui lòng điền đầy đủ và chính xác thông tin bắt buộc.", false);
+                    if (placeOrderButtonEl) { placeOrderButtonEl.disabled = false; placeOrderButtonEl.innerHTML = 'XÁC NHẬN ĐẶT HÀNG'; }
+                    return;
+                }
+
+                // Construct OrderRequest object
+                const orderRequest = {
+                    customerName: customerName,
+                    customerPhone: customerPhone,
+                    customerEmail: customerEmail || null,
+                    shippingAddress: {
+                        number: addressNumber,
+                        street: addressStreet,
+                        ward: addressWard,
+                        district: addressDistrict,
+                        city: addressCity
+                    },
+                    title: orderTitle || null,
+                    // guestCartId chỉ được gửi nếu user KHÔNG đăng nhập (không có token)
+                    guestCartId: token ? null : getGuestCartId()
+                };
+
+                console.log("CheckoutPage - Placing order with request:", JSON.stringify(orderRequest));
+
+                try {
+                    // <<< SỬA LỖI 3: Đặt hàng (POST) không "requiresAuth"
+                    // vì guest cũng có thể đặt. Hàm makeApiCall sẽ tự động
+                    // thêm token nếu nó tồn tại.
+                    const response = await makeApiCall(API_ORDER_URL, 'POST', orderRequest, false); // requiresAuth: FALSE
+
+                    const contentType = response.headers.get("content-type");
+                    let responseData;
+
+                    if (contentType && contentType.includes("application/json")) {
+                        responseData = await response.json();
+                    } else {
+                        const textResponse = await response.text();
+                        console.error("Phản hồi đặt hàng không phải JSON. Status:", response.status, "Text:", textResponse.substring(0, 500));
+                        throw new Error(`Phản hồi không hợp lệ từ server (Status: ${response.status}). Chi tiết: ${textResponse.substring(0,100)}...`);
+                    }
+                    console.log("CheckoutPage - Place order response data (JSON):", responseData);
+
+                    if (responseData.status === 201 && responseData.data && responseData.data.id) {
+                        showToast("Đặt hàng thành công! Cảm ơn bạn.", true);
+                        removeGuestCartId(); // Xóa guest cart ID
+                        if (cartItemCountHeaderEl) cartItemCountHeaderEl.textContent = '0';
+
+                        const orderId = responseData.data.id;
+                        setTimeout(() => { window.location.href = `/order-confirmation?orderId=${orderId}`; }, 1500);
+                    } else {
+                        showToast(`Lỗi đặt hàng: ${responseData.message || 'Không thành công'} (Mã lỗi: ${responseData.status || response.status})`, false);
+                        if(checkoutFormMessageEl) checkoutFormMessageEl.textContent = responseData.message || 'Lỗi không xác định từ server.';
+                    }
+                } catch (error) {
+                    if (error.message !== 'Unauthorized' && error.message !== 'Forbidden' && error.message !== 'NO_TOKEN') {
+                        console.error("Lỗi khi đặt hàng:", error);
+                        showToast(`Lỗi kết nối hoặc xử lý: ${error.message}`, false);
+                        if(checkoutFormMessageEl) checkoutFormMessageEl.textContent = `Lỗi: ${error.message}`;
+                    }
+                } finally {
+                    if (placeOrderButtonEl) { placeOrderButtonEl.disabled = false; placeOrderButtonEl.innerHTML = 'XÁC NHẬN ĐẶT HÀNG'; }
+                }
+            });
+        }
+        // <<< KẾT THÚC DI CHUYỂN
+
+        // Chạy các hàm khởi tạo
+        updateUserAuthStatusOnHeader();
+        loadCartSummaryForCheckout();
+        prefillShippingForm();
+    });
 </script>
 </body>
 </html>
