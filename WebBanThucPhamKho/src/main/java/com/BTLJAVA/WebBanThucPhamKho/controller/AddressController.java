@@ -39,20 +39,7 @@ public class AddressController {
                     .message("Lấy thông tin địa chỉ thành công.")
                     .data(addressResponse)
                     .build();
-        } catch (EntityNotFoundException enfe) {
-            log.warn("CONTROLLER - getAddressById - EntityNotFoundException for ID {}: {}", addressId, enfe.getMessage());
-            return ResponseData.<AddressResponse>builder()
-                    .status(HttpStatus.NOT_FOUND.value())
-                    .message(enfe.getMessage())
-                    .error(enfe.getClass().getSimpleName())
-                    .build();
-        } catch (AccessDeniedException ade) { // Nếu bạn có logic phân quyền trong service
-            log.warn("CONTROLLER - getAddressById - AccessDeniedException for ID {}: {}", addressId, ade.getMessage());
-            return ResponseData.<AddressResponse>builder()
-                    .status(HttpStatus.FORBIDDEN.value())
-                    .message("Bạn không có quyền truy cập tài nguyên này.")
-                    .error(ade.getClass().getSimpleName())
-                    .build();
+
         } catch (Exception e) {
             log.error("CONTROLLER - API GET /addresses/{} - Unexpected Exception: {}", addressId, e.getMessage(), e);
             return ResponseData.<AddressResponse>builder()
